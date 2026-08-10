@@ -9,9 +9,9 @@
 | `scenarios/catalog-read-baseline.js` | `GET /api/products` | 카탈로그 읽기 기준선 | 5 → 50 RPS, 30초 상승 + 2분 유지 + 30초 하강 |
 | `scenarios/hot-product-burst.js` | `GET /api/products/1` | 캐시 스탬피드 전후 비교 | 20 → 250 RPS, 10초 상승 + 45초 유지 + 10초 하강 |
 | `scenarios/order-throughput.js` | `POST /api/orders` | 동기 처리와 Kafka/outbox 처리 비교 | 1 → 2 RPS, 15초 상승 + 30초 유지 + 15초 하강 |
-| `scenarios/flash-sale-admission.js` | `WAITING_ROOM_PATH` | 대기열 진입 제어 비교용 자리표시자 | 50 → 500 RPS, 15초 상승 + 1분 유지 + 15초 하강 |
+| `scenarios/flash-sale-admission.js` | `/api/labs/waiting-room` | direct 429와 queued E2E 흐름 비교 | 10 → 100 RPS, 15초 상승 + 1분 유지 + 15초 하강 |
 
-각 시나리오는 상태와 응답 형태를 `check`로 검증하고, 시나리오 전용 성공·오류 횟수와 비율을 기록한다. 기본 임계치는 오류율 1% 미만과 시나리오별 p95/p99 응답 시간이다. 대기열 시나리오의 429는 기본적으로 예상된 제어 결과이며 `admission_throttled_total`에 별도로 집계된다. HTTP 200/201은 허용, 202는 대기, 429는 제한으로 나눠 기록한다.
+각 시나리오는 상태와 응답 형태를 `check`로 검증하고, 시나리오 전용 성공·오류 횟수와 비율을 기록한다. 기본 임계치는 오류율 1% 미만과 시나리오별 p95/p99 응답 시간이다. 대기열 시나리오는 `WAITING_ROOM_MODE=direct|queued`로 두 실행을 분리한다. direct의 429는 예상된 용량 제어 결과이며, queued는 대기표 발급부터 입장 후 구매까지 한 iteration으로 측정한다.
 
 ## 실행 전 준비
 
@@ -59,12 +59,12 @@ bash load-tests/capture-environment.sh
 k6 run load-tests/scenarios/order-throughput.js
 
 export RESULT_LABEL="waiting-room-baseline-$(git rev-parse --short HEAD)"
-export WAITING_ROOM_PATH=/api/flash-sales/1/admission
+export WAITING_ROOM_MODE=direct
 bash load-tests/capture-environment.sh
 k6 run load-tests/scenarios/flash-sale-admission.js
 ```
 
-대기열 API가 아직 구현되지 않았다면 마지막 시나리오는 의도대로 실패한다. 경로와 계약을 구현한 lab 브랜치에서 `WAITING_ROOM_PATH`, `WAITING_ROOM_METHOD`, `WAITING_ROOM_EXPECTED_STATUSES`를 실제 API에 맞춘 뒤 실행한다.
+대기열 실험군은 `/api/labs/waiting-room/reset`을 호출한 뒤 `WAITING_ROOM_MODE=queued`와 새 `RESULT_LABEL`로 같은 시나리오를 다시 실행한다. 상세 순서는 [`../docs/labs/waiting-room.md`](../docs/labs/waiting-room.md)에 고정한다.
 
 ## 부하와 임계치 조정
 
@@ -84,7 +84,7 @@ HOT_PRODUCT_P99_MS=1000
 HOT_PRODUCT_ID=1
 ```
 
-다른 접두사는 `CATALOG_READ`, `ORDER`, `WAITING_ROOM`이다. 공통 HTTP timeout은 `REQUEST_TIMEOUT`으로 바꾼다. 주문 payload는 `{customerName, lines:[{productId, quantity}]}`이며 `ORDER_PRODUCT_ID`, `ORDER_QUANTITY`, `ORDER_CUSTOMER_PREFIX`로 조정한다. 대기열은 `WAITING_ROOM_PATH`, `WAITING_ROOM_METHOD`, `WAITING_ROOM_PRODUCT_ID`, `WAITING_ROOM_QUANTITY`, 쉼표로 구분한 `WAITING_ROOM_EXPECTED_STATUSES`를 지원한다.
+다른 접두사는 `CATALOG_READ`, `ORDER`, `WAITING_ROOM`이다. 공통 HTTP timeout은 `REQUEST_TIMEOUT`으로 바꾼다. 주문 payload는 `{customerName, lines:[{productId, quantity}]}`이며 `ORDER_PRODUCT_ID`, `ORDER_QUANTITY`, `ORDER_CUSTOMER_PREFIX`로 조정한다. 대기열은 `WAITING_ROOM_MODE=direct|queued`를 지원하고 `WAITING_ROOM_START_RATE`, `WAITING_ROOM_PEAK_RATE`, 단계 시간과 VU 설정을 두 모드에 동일하게 적용한다.
 
 ## 전후 비교 규칙
 
