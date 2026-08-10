@@ -1,6 +1,6 @@
 # Lab: cache stampede
 
-- 상태: 측정 대기
+- 상태: 로컬 측정 완료 (2026-08-11 KST)
 - 브랜치: `lab/cache-stampede`
 - 추적 Issue: [#1 Cache stampede lab](https://github.com/kergosdyr/my-awesome-project/issues/1)
 - 기준선: `c691359`의 [main 측정 보고서](../reports/cache-stampede-main-baseline.md)
@@ -20,7 +20,7 @@
 - 같은 시간대의 `http_server_requests_seconds`, JVM/프로세스 지표
 - Redis 장애, 잠금 timeout, lease 만료 시 HTTP 결과와 origin fallback 여부
 
-측정값과 결론은 실행 후에만 기록한다. 아래 결과표는 의도적으로 비워 두었다.
+실측 결과, protected 전략은 오류와 처리량 저하 없이 origin load 중앙값을 985회에서 119회로 **87.9% 줄였다**. p95는 42.32ms에서 24.27ms로 **42.7% 낮아졌지만**, p99 개선은 1.7%에 그쳤고 한 실행의 최대 지연은 오히려 92.23ms까지 늘었다. 따라서 이 구현은 DB 증폭 억제에는 효과가 있었지만 모든 tail latency를 제거하지는 않았다.
 
 ## 비교 대상
 
@@ -184,35 +184,63 @@ k6 threshold가 실패해도 backend metrics를 먼저 수집한 뒤 최종 non-
 
 ## 결과
 
-| 사용자 지표 | main no-cache | naive | protected |
-| --- | ---: | ---: | ---: |
-| 응답 시간 p50 |  |  |  |
-| 응답 시간 p95 |  |  |  |
-| 응답 시간 p99 |  |  |  |
-| 성공 RPS |  |  |  |
-| 오류율 |  |  |  |
-| dropped iterations |  |  |  |
+Naive와 protected는 동일한 commit, 컨테이너 제한, 상품, `20 → 250 RPS`, `10초 상승 + 45초 유지 + 10초 하강` 프로파일로 실행했다. 각 전략은 실행 직전에 cache와 counter를 reset했고 3회 중앙값을 대표값으로 사용했다. 모든 실행에서 약 13,850건을 처리했으며 `dropped_iterations`와 HTTP 오류는 0이었다.
 
-| 백엔드 지표 | main no-cache | naive | protected |
+`main` no-cache는 더 짧은 `20 → 200 RPS`, 30초 프로파일이고 40ms 제어 지연도 없으므로 아래 표에서는 환경 맥락만 제공한다. Naive 대비 protected만 직접적인 전후 비교다.
+
+| 사용자 지표 | main no-cache (맥락) | naive 중앙값 | protected 중앙값 | protected 변화 |
+| --- | ---: | ---: | ---: | ---: |
+| 응답 시간 p50 | 1.347ms | 1.213ms | 1.240ms | +2.2% |
+| 응답 시간 p95 | 2.119ms | 42.319ms | 24.265ms | **-42.7%** |
+| 응답 시간 p99 | 4.630ms | 46.133ms | 45.370ms | -1.7% |
+| 성공 RPS | 168.292 | 212.923 | 213.057 | +0.1% |
+| 오류율 | 0% | 0% | 0% | 0.0%p |
+| dropped iterations | 0 | 0 | 0 | 동일 |
+
+| 백엔드 지표 | naive 중앙값 | protected 중앙값 | protected 변화 |
 | --- | ---: | ---: | ---: |
-| requests |  |  |  |
-| cache hits |  |  |  |
-| cache misses |  |  |  |
-| origin loads |  |  |  |
-| lock contention |  |  |  |
-| JVM CPU / heap / GC |  |  |  |
+| requests | 13,850 | 13,849 | -1 |
+| 최초 cache hits | 12,865 | 12,801 | -0.5% |
+| 최초 cache misses | 985 | 1,048 | +6.4% |
+| origin loads | 985 | 119 | **-87.9%** |
+| lock contention | 0 | 929 | 보호 동작 관측 |
+| miss 중 origin load 비율 | 100.0% | 11.4% | **-88.6%p** |
+
+도착률이 고정된 open-model 테스트이므로 성공 RPS가 같다는 것은 두 전략 모두 요청 스케줄을 소화했다는 뜻이지 protected의 최대 처리 용량이 더 크다는 뜻은 아니다.
+
+### 실행별 결과
+
+| 전략 | 실행 | 요청 | 성공 RPS | p50(ms) | p95(ms) | p99(ms) | max(ms) | origin loads | contention |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| naive | 1 | 13,850 | 212.917 | 1.079 | 42.528 | 46.116 | 62.763 | 982 | 0 |
+| naive | 2 | 13,849 | 213.057 | 1.213 | 42.319 | 46.253 | 55.865 | 986 | 0 |
+| naive | 3 | 13,850 | 212.923 | 1.214 | 42.319 | 46.133 | 53.805 | 985 | 0 |
+| protected | 1 | 13,849 | 213.057 | 1.241 | 24.265 | 45.370 | 92.233 | 119 | 929 |
+| protected | 2 | 13,850 | 213.060 | 1.192 | 24.174 | 45.324 | 58.082 | 119 | 933 |
+| protected | 3 | 13,849 | 213.057 | 1.240 | 24.342 | 45.542 | 63.102 | 119 | 927 |
+
+각 실행 디렉터리에는 k6 `summary.json`/`summary.txt`, 환경 캡처, lab backend metrics, Prometheus snapshot이 함께 있다.
+
+- [naive run 1](../reports/raw/cache-stampede/cache-stampede-naive-run1-16262c1/summary.json), [run 2](../reports/raw/cache-stampede/cache-stampede-naive-run2-16262c1/summary.json), [run 3](../reports/raw/cache-stampede/cache-stampede-naive-run3-16262c1/summary.json)
+- [protected run 1](../reports/raw/cache-stampede/cache-stampede-protected-run1-16262c1/summary.json), [run 2](../reports/raw/cache-stampede/cache-stampede-protected-run2-16262c1/summary.json), [run 3](../reports/raw/cache-stampede/cache-stampede-protected-run3-16262c1/summary.json)
+
+### 실패 정책 점검
+
+- Redis를 중지한 뒤 naive 조회는 `503 CACHE_UNAVAILABLE`을 반환했다. 요청 counter만 1 증가했고 miss와 origin load는 0으로 유지되어 DB fallback이 일어나지 않았다. [응답](../reports/raw/cache-stampede/failure-redis-unavailable-16262c1/response.json), [전후 metrics](../reports/raw/cache-stampede/failure-redis-unavailable-16262c1/after-metrics.json)
+- 합성 owner가 product lock을 5초 보유한 상태에서 protected 조회는 1초 뒤 `503 CACHE_LOCK_TIMEOUT`을 반환했다. `misses=1`, `lockContention=1`, `originLoads=0`으로 보호 없는 우회가 없었다. [응답](../reports/raw/cache-stampede/failure-lock-timeout-16262c1/response.json), [metrics](../reports/raw/cache-stampede/failure-lock-timeout-16262c1/backend-metrics.json)
 
 ## 해석
 
-- 가설 채택/기각:
-- origin load 감소와 p95/p99의 관계:
-- lock contention 및 timeout 비용:
-- Redis 장애와 lease 만료에서 관찰한 동작:
-- 다음 실험:
+- **가설 채택:** 동일 만료·지연 조건에서 Redis lock과 double-check가 중복 origin load를 87.9% 억제했다.
+- p95는 42.7% 개선됐지만 p99는 1.7%만 개선됐다. 보호 경로의 waiter도 cache refill을 기다리므로 40ms origin 지연 자체는 상위 tail에 남는다.
+- protected run 1의 최대값 92.23ms는 naive의 모든 실행 최대값보다 높았다. 짧은 polling, 스케줄링, 만료 경계가 극단값을 만들 수 있어 평균/백분위 개선을 최대 지연 보장으로 해석하면 안 된다.
+- Redis 장애와 lock timeout은 의도대로 503 fail-closed였으며 MySQL로 우회하지 않았다. 반면 lock lease 만료 중복과 Redis 재시작/failover는 이번 실행에서 재현하지 않았다.
+- 다음 실험은 TTL jitter, stale-while-revalidate, lock lease보다 긴 origin, 다중 backend에서 같은 `originLoads`/tail을 비교하는 것이다.
 
 ## 한계
 
 - 로컬 단일 Redis/단일 backend 구성이며 Redis 자체의 failover는 검증하지 않는다.
 - 제어된 40ms 지연은 재현 장치이고 실제 DB latency 분포가 아니다.
 - TTL 동시 만료와 hot key 하나만 다루며 key cardinality가 큰 cache 운영 비용은 측정하지 않는다.
-- 결과를 채우기 전까지 구현의 성능 우위나 origin load 감소를 결론 내리지 않는다.
+- Prometheus는 실행 종료 snapshot만 저장했다. CPU, heap, GC 시계열과 MySQL lock-wait를 전략별로 정량 비교하지 않았다.
+- 실행 순서는 naive 3회 후 protected 3회로 고정되어 시간 순서 효과를 무작위화하지 않았다.

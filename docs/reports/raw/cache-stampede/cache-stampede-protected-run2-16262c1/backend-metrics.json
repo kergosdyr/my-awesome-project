@@ -1,0 +1,1 @@
+{"data":{"cacheTtlMs":500,"originDelayMs":40,"lockLeaseMs":2000,"lockWaitTimeoutMs":1000,"lockPollIntervalMs":10,"strategies":[{"strategy":"NAIVE","requests":0,"hits":0,"misses":0,"originLoads":0,"lockContention":0},{"strategy":"PROTECTED","requests":13850,"hits":12798,"misses":1052,"originLoads":119,"lockContention":933}]},"error":null}
