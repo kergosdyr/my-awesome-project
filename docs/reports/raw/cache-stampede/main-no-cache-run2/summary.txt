@@ -1,0 +1,34 @@
+k6 load-test summary: hot-product-burst
+result label: main-no-cache-run2
+generated at: 2026-08-10T15:14:01.900Z
+
+Thresholds
+- PASS hot_product_error_rate: rate<0.01
+- PASS hot_product_success_rate: rate>0.99
+- PASS http_req_duration{scenario:hot_product_burst}: p(95)<750
+- PASS http_req_duration{scenario:hot_product_burst}: p(99)<1500
+
+Metrics
+- checks (rate): rate=1, passes=15147, fails=0
+- data_received (counter): count=2297295, rate=76572.0946
+- data_sent (counter): count=605880, rate=20194.8381
+- hot_product_error_rate (rate): fails=5049, rate=0, passes=0
+- hot_product_success_rate (rate): rate=1, passes=5049, fails=0
+- hot_product_success_total (counter): count=5049, rate=168.2903
+- http_req_blocked (trend): p(99)=0.4296, max=1.646, count=5049, avg=0.0132, min=0, p(50)=0.005, p(90)=0.008, p(95)=0.009
+- http_req_connecting (trend): p(95)=0, p(99)=0.333, max=1.528, count=5049, avg=0.0065, min=0, p(50)=0, p(90)=0
+- http_req_duration (trend): max=54.574, count=5049, avg=1.3293, min=0.277, p(50)=1.362, p(90)=1.818, p(95)=2.1192, p(99)=4.6295
+- http_req_duration{expected_response:true} (trend): avg=1.3293, min=0.277, p(50)=1.362, p(90)=1.818, p(95)=2.1192, p(99)=4.6295, max=54.574, count=5049
+- http_req_duration{scenario:hot_product_burst} (trend): p(90)=1.818, p(95)=2.1192, p(99)=4.6295, max=54.574, count=5049, avg=1.3293, min=0.277, p(50)=1.362
+- http_req_failed (rate): rate=0, passes=0, fails=5049
+- http_req_receiving (trend): p(95)=0.118, p(99)=0.152, max=2.536, count=5049, avg=0.0576, min=0.007, p(50)=0.05, p(90)=0.101
+- http_req_sending (trend): max=0.17, count=5049, avg=0.0165, min=0.002, p(50)=0.017, p(90)=0.022, p(95)=0.025, p(99)=0.056
+- http_req_tls_handshaking (trend): avg=0, min=0, p(50)=0, p(90)=0, p(95)=0, p(99)=0, max=0, count=5049
+- http_req_waiting (trend): min=0.249, p(50)=1.284, p(90)=1.7162, p(95)=2.0276, p(99)=4.445, max=54.347, count=5049, avg=1.2553
+- http_reqs (counter): count=5049, rate=168.2903
+- iteration_duration (trend): count=5049, avg=1.5705, min=0.3442, p(50)=1.5379, p(90)=2.0789, p(95)=2.4104, p(99)=5.5996, max=56.68
+- iterations (counter): count=5049, rate=168.2903
+- vus (gauge): value=0, min=0, max=1
+- vus_max (gauge): value=100, min=100, max=100
+
+The JSON file next to this report is the unmodified k6 handleSummary payload.

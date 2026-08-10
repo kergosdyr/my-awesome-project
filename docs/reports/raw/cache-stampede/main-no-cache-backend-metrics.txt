@@ -1,0 +1,13 @@
+captured_at_utc: 2026-08-10T15:14:45Z
+git_commit: aa49aebe4510e2a4f75b3c634b43269e73b2fa8b
+http_product_detail_requests: 15948
+
+mysql.performance_schema.events_statements_summary_by_digest
+product_detail_select_count: 15947
+product_detail_select_total_seconds: 2.132
+product_list_select_count: 2
+product_for_update_select_count: 1
+
+note: HTTP count includes the warm-up and three measured runs. The one-request
+difference between HTTP and MySQL digest counters is retained as observed and
+is not imputed. The three measured runs contain 15148 requests.
