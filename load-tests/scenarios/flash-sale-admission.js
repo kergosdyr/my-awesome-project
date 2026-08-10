@@ -25,6 +25,9 @@ const acceptedEndToEndDuration = new Trend('waiting_room_accepted_end_to_end_dur
 const backendMaxActive = new Gauge('waiting_room_backend_max_active');
 const backendMaxQueueDepth = new Gauge('waiting_room_backend_max_queue_depth');
 const backendFifoViolations = new Gauge('waiting_room_backend_fifo_violations');
+const defaultVus = mode === 'queued'
+  ? { preAllocated: 3000, maximum: 4000 }
+  : { preAllocated: 200, maximum: 1000 };
 
 if (!['direct', 'queued'].includes(mode)) {
   throw new Error(`WAITING_ROOM_MODE must be direct or queued; received "${mode}"`);
@@ -39,18 +42,21 @@ export const options = {
         rampUp: '15s',
         steady: '1m',
         rampDown: '15s',
-        preAllocatedVUs: 1000,
-        maxVUs: 4000,
+        preAllocatedVUs: defaultVus.preAllocated,
+        maxVUs: defaultVus.maximum,
       }),
       exec: 'compareWaitingRoom',
       tags: { lab: 'waiting-room', mode },
     },
   },
-  thresholds: outcomeThresholds('WAITING_ROOM', SCENARIO, {
-    maxErrorRate: 0.01,
-    p95Ms: 1000,
-    p99Ms: 2000,
-  }),
+  thresholds: {
+    ...outcomeThresholds('WAITING_ROOM', SCENARIO, {
+      maxErrorRate: 0.01,
+      p95Ms: 1000,
+      p99Ms: 2000,
+    }),
+    dropped_iterations: ['count==0'],
+  },
   summaryTrendStats: SUMMARY_TREND_STATS,
 };
 

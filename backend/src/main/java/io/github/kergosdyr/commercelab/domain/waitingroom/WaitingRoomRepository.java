@@ -4,11 +4,15 @@ import java.time.Instant;
 
 public interface WaitingRoomRepository {
 
-    EnqueuedTicket enqueue(String ticketId, Instant issuedAt, Instant expiresAt);
+    EnqueuedTicket enqueue(
+            String ticketId,
+            String reservedAdmissionToken,
+            Instant issuedAt,
+            Instant expiresAt
+    );
 
     PollDecision poll(
             String ticketId,
-            String candidateAdmissionToken,
             Instant now,
             Instant admissionExpiresAt,
             int maxConcurrency

@@ -59,6 +59,51 @@ class WaitingRoomServiceTest {
     }
 
     @Test
+    void onePollStrictlyPromotesFourQueueHeadsAndKeepsTheFifthQueued() {
+        var fourSlotPolicy = new TestPolicy(
+                4,
+                Duration.ofMillis(1),
+                Duration.ofSeconds(30),
+                Duration.ofSeconds(10),
+                Duration.ofSeconds(5),
+                Duration.ofMillis(10)
+        );
+        var fourSlotService = new WaitingRoomService(
+                repository,
+                flashSaleClient,
+                fourSlotPolicy,
+                clock
+        );
+        var first = fourSlotService.issueTicket();
+        fourSlotService.issueTicket();
+        fourSlotService.issueTicket();
+        var fourth = fourSlotService.issueTicket();
+        var fifth = fourSlotService.issueTicket();
+
+        var fifthPoll = fourSlotService.pollTicket(fifth.ticketId());
+        var fourthPoll = fourSlotService.pollTicket(fourth.ticketId());
+        var metricsAfterBatch = fourSlotService.metrics().waitingRoom();
+
+        assertThat(fifthPoll.status()).isEqualTo("QUEUED");
+        assertThat(fifthPoll.position()).isEqualTo(1);
+        assertThat(fourthPoll.status()).isEqualTo("ADMITTED");
+        assertThat(metricsAfterBatch.currentActive()).isEqualTo(4);
+        assertThat(metricsAfterBatch.maxActive()).isEqualTo(4);
+        assertThat(metricsAfterBatch.lastAdmittedSequence()).isEqualTo(4);
+        assertThat(metricsAfterBatch.fifoViolations()).isZero();
+
+        var firstPoll = fourSlotService.pollTicket(first.ticketId());
+        fourSlotService.purchaseWithAdmission(new WaitingRoomCommand.Purchase(
+                first.ticketId(),
+                firstPoll.admissionToken()
+        ));
+
+        assertThat(fourSlotService.pollTicket(fifth.ticketId()).status()).isEqualTo("ADMITTED");
+        assertThat(fourSlotService.metrics().waitingRoom().lastAdmittedSequence()).isEqualTo(5);
+        assertThat(fourSlotService.metrics().waitingRoom().fifoViolations()).isZero();
+    }
+
+    @Test
     void rejectsABypassTokenBeforeCallingTheDownstream() {
         var ticket = service.issueTicket();
         service.pollTicket(ticket.ticketId());

@@ -19,8 +19,8 @@
 
 ## 정책과 불변식
 
-- 공정성: 대기표 발급 시 Redis `INCR` sequence를 부여하고 sorted set score로 저장한다. 입장은 만료 항목을 제거한 뒤 `ZRANK == 0`인 대기표에만 허용한다. 선두 사용자가 polling을 멈추면 그 대기표가 만료될 때까지 뒤 사용자는 추월하지 않는다.
-- 원자성: 발급, 선두 확인과 active slot 획득, 입장 토큰 claim, slot release는 각각 Lua script 한 번으로 수행한다.
+- 공정성: 대기표 발급 시 Redis `INCR` sequence와 비공개 입장 token을 함께 저장한다. 어떤 사용자의 poll이든 Lua가 빈 slot 수만큼 `ZRANGE 0 0` queue head를 하나씩 승격하므로 실제 입장 sequence는 항상 증가한다. `lastAdmittedSequence`는 마지막 승격 sequence이며 더 작은 sequence가 뒤늦게 승격될 때만 `fifoViolations`가 증가한다.
+- 원자성: 발급, 만료 정리와 FIFO batch 승격, 입장 토큰 claim, slot release는 각각 Lua script 한 번으로 수행한다. queue·ticket·admission·active key는 모두 `{waiting-room}` Redis hash tag를 공유한다.
 - 만료: 기본 대기표 TTL은 30초, 미사용 입장 토큰은 10초, 구매를 시작한 active lease는 5초다. 요청, polling, metrics 조회 시 만료 score를 원자적으로 정리하므로 프로세스가 중단돼도 slot은 영구 점유되지 않는다.
 - 우회 방지: 구매는 같은 대기표에 발급된 일회용 token만 `READY → PROCESSING`으로 claim할 수 있다. 살아 있는 대기표에 대한 위조·중복 claim은 HTTP 403, 이미 소비됐거나 만료된 대기표·token은 HTTP 410이다.
 - fail-closed: Redis가 응답하지 않으면 대기열 발급·polling·구매·metrics/reset은 HTTP 503으로 중단한다. 비교군인 direct endpoint만 Redis 없이 동작한다.
@@ -96,7 +96,7 @@ curl --fail http://localhost:8080/api/labs/waiting-room/metrics \
 docker compose down
 ```
 
-두 실행은 같은 `WAITING_ROOM_*` 도착률, CPU/memory 제한, warm-up 조건을 사용한다. queued iteration은 대기표 TTL까지 VU를 점유할 수 있으므로 기본값은 1,000 VU를 미리 할당하고 최대 4,000 VU까지 허용한다. 부하 발생기 메모리가 부족하면 `WAITING_ROOM_PEAK_RATE`, `WAITING_ROOM_PRE_ALLOCATED_VUS`, `WAITING_ROOM_MAX_VUS`, ticket TTL을 함께 낮춘다. 각 군을 최소 3회 반복하고 `dropped_iterations`가 발생한 실행은 결과에서 제외한다.
+두 실행은 같은 `WAITING_ROOM_*` 도착률, CPU/memory 제한, warm-up 조건을 사용한다. direct 기본 VU는 200/최대 1,000이고, queued iteration은 대기표 TTL까지 VU를 점유할 수 있어 3,000/최대 4,000을 사용한다. 부하 발생기 메모리가 부족하면 `WAITING_ROOM_PEAK_RATE`, `WAITING_ROOM_PRE_ALLOCATED_VUS`, `WAITING_ROOM_MAX_VUS`, ticket TTL을 함께 낮춘다. `dropped_iterations`에는 `count==0` threshold가 있으며, 발생한 실행은 자동 실패하고 결과에서 제외한다.
 
 동일 조건 3회 비교와 결과 수집은 runner로 한 번에 재현할 수 있다. 시간 순서 편향을 줄이기 위해 홀수 run은 direct→queued, 짝수 run은 queued→direct로 실행한다.
 
@@ -134,5 +134,7 @@ bash load-tests/run-waiting-room-lab.sh
 - 다음 실험:
 
 이 lab의 downstream은 실제 주문·재고를 변경하지 않는 50ms 제어 작업이다. Redis release가 downstream 완료 뒤 실패하면 호출자는 503을 받더라도 작업은 이미 수행됐을 수 있으며, processing lease가 만료될 때 slot만 복구된다. 실제 주문 통합에서는 별도의 idempotency와 완료 기록이 필요하다. 또한 처리 시간이 5초 lease를 넘으면 만료 정리가 새 slot을 열 수 있으므로, 운영 구성에서는 최악 처리 시간보다 충분히 긴 lease와 갱신 전략이 필요하다.
+
+poll은 요청한 대기표만 승격하지 않고 빈 용량만큼 queue head를 함께 승격한다. 따라서 선두 사용자가 polling을 멈춰도 뒤 요청의 poll이 strict FIFO 순서로 slot을 채운다. 다만 승격된 사용자가 token을 가져가지 않으면 admission TTL 동안 slot을 점유하므로, push 알림이나 더 짧은 admission TTL은 별도 실험 대상이다.
 
 측정 전 문서이므로 결과와 결론은 비워 둔다.

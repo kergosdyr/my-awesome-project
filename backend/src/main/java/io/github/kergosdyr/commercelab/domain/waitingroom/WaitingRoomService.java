@@ -49,7 +49,13 @@ public class WaitingRoomService {
         var issuedAt = clock.instant();
         var expiresAt = issuedAt.plus(policy.ticketTtl());
         var ticketId = UUID.randomUUID().toString();
-        var enqueued = waitingRoomRepository.enqueue(ticketId, issuedAt, expiresAt);
+        var reservedAdmissionToken = UUID.randomUUID().toString();
+        var enqueued = waitingRoomRepository.enqueue(
+                ticketId,
+                reservedAdmissionToken,
+                issuedAt,
+                expiresAt
+        );
 
         return new WaitingRoomResult.Ticket(
                 ticketId,
@@ -66,7 +72,6 @@ public class WaitingRoomService {
         var admissionExpiresAt = now.plus(policy.admissionTtl());
         var decision = waitingRoomRepository.poll(
                 ticketId,
-                UUID.randomUUID().toString(),
                 now,
                 admissionExpiresAt,
                 policy.maxConcurrency()

@@ -116,10 +116,18 @@ public final class WaitingRoomTestFixtures {
         private long maxWaitDurationMillis;
 
         @Override
-        public synchronized EnqueuedTicket enqueue(String ticketId, Instant issuedAt, Instant expiresAt) {
+        public synchronized EnqueuedTicket enqueue(
+                String ticketId,
+                String reservedAdmissionToken,
+                Instant issuedAt,
+                Instant expiresAt
+        ) {
             cleanup(issuedAt);
             var sequence = ++nextSequence;
-            tickets.put(ticketId, new TicketState(sequence, issuedAt, expiresAt));
+            tickets.put(
+                    ticketId,
+                    new TicketState(sequence, reservedAdmissionToken, issuedAt, expiresAt)
+            );
             issued++;
             var depth = queueDepth();
             maxQueueDepth = Math.max(maxQueueDepth, depth);
@@ -129,12 +137,12 @@ public final class WaitingRoomTestFixtures {
         @Override
         public synchronized PollDecision poll(
                 String ticketId,
-                String candidateAdmissionToken,
                 Instant now,
                 Instant admissionExpiresAt,
                 int maxConcurrency
         ) {
             cleanup(now);
+            promoteQueueHeads(now, admissionExpiresAt, maxConcurrency);
             var ticket = tickets.get(ticketId);
             if (ticket == null) {
                 return PollDecision.expired();
@@ -157,23 +165,7 @@ public final class WaitingRoomTestFixtures {
             if (position <= 0) {
                 return PollDecision.expired();
             }
-            if (position > 1 || active.size() >= maxConcurrency) {
-                return PollDecision.queued(position);
-            }
-
-            ticket.admissionToken = candidateAdmissionToken;
-            ticket.admittedAt = now;
-            active.put(candidateAdmissionToken, new ActiveState(ticketId, admissionExpiresAt));
-            admitted++;
-            if (ticket.sequence < lastAdmittedSequence) {
-                fifoViolations++;
-            }
-            lastAdmittedSequence = ticket.sequence;
-            var waited = Duration.between(ticket.issuedAt, now).toMillis();
-            totalWaitDurationMillis += waited;
-            maxWaitDurationMillis = Math.max(maxWaitDurationMillis, waited);
-            maxActive = Math.max(maxActive, active.size());
-            return PollDecision.admitted(candidateAdmissionToken, admissionExpiresAt, waited);
+            return PollDecision.queued(position);
         }
 
         @Override
@@ -289,16 +281,54 @@ public final class WaitingRoomTestFixtures {
             return queued;
         }
 
+        private void promoteQueueHeads(
+                Instant now,
+                Instant admissionExpiresAt,
+                int maxConcurrency
+        ) {
+            var availableSlots = Math.max(maxConcurrency - active.size(), 0);
+            var queueHeads = queuedTickets().entrySet().stream()
+                    .limit(availableSlots)
+                    .toList();
+
+            for (var entry : queueHeads) {
+                var ticketId = entry.getKey();
+                var ticket = entry.getValue();
+                ticket.admissionToken = ticket.reservedAdmissionToken;
+                ticket.admittedAt = now;
+                active.put(
+                        ticket.reservedAdmissionToken,
+                        new ActiveState(ticketId, admissionExpiresAt)
+                );
+                admitted++;
+                if (ticket.sequence < lastAdmittedSequence) {
+                    fifoViolations++;
+                }
+                lastAdmittedSequence = ticket.sequence;
+                var waited = Duration.between(ticket.issuedAt, now).toMillis();
+                totalWaitDurationMillis += waited;
+                maxWaitDurationMillis = Math.max(maxWaitDurationMillis, waited);
+            }
+            maxActive = Math.max(maxActive, active.size());
+        }
+
         private static final class TicketState {
             private final long sequence;
+            private final String reservedAdmissionToken;
             private final Instant issuedAt;
             private final Instant expiresAt;
             private String admissionToken;
             private Instant admittedAt;
             private boolean claimed;
 
-            private TicketState(long sequence, Instant issuedAt, Instant expiresAt) {
+            private TicketState(
+                    long sequence,
+                    String reservedAdmissionToken,
+                    Instant issuedAt,
+                    Instant expiresAt
+            ) {
                 this.sequence = sequence;
+                this.reservedAdmissionToken = reservedAdmissionToken;
                 this.issuedAt = issuedAt;
                 this.expiresAt = expiresAt;
             }

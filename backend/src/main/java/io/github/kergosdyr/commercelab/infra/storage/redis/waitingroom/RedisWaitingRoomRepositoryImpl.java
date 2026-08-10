@@ -24,26 +24,29 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
     private static final String SEQUENCE_KEY = PREFIX + "sequence";
     private static final String METRICS_KEY = PREFIX + "metrics";
     private static final String KNOWN_KEYS_KEY = PREFIX + "known-keys";
+    private static final String TICKET_KEY_PREFIX = PREFIX + "ticket:";
+    private static final String ADMISSION_KEY_PREFIX = PREFIX + "admission:";
 
     private static final RedisScript<String> ENQUEUE_SCRIPT = script("""
-            local expired = redis.call('ZRANGEBYSCORE', KEYS[2], '-inf', ARGV[2])
+            local expired = redis.call('ZRANGEBYSCORE', KEYS[2], '-inf', ARGV[3])
             for _, ticketId in ipairs(expired) do
                 redis.call('ZREM', KEYS[1], ticketId)
             end
             if #expired > 0 then
-                redis.call('ZREMRANGEBYSCORE', KEYS[2], '-inf', ARGV[2])
+                redis.call('ZREMRANGEBYSCORE', KEYS[2], '-inf', ARGV[3])
                 redis.call('HINCRBY', KEYS[4], 'expiredTickets', #expired)
             end
 
             local sequence = redis.call('INCR', KEYS[3])
             redis.call('ZADD', KEYS[1], sequence, ARGV[1])
-            redis.call('ZADD', KEYS[2], ARGV[3], ARGV[1])
+            redis.call('ZADD', KEYS[2], ARGV[4], ARGV[1])
             redis.call('HSET', KEYS[5],
                 'state', 'QUEUED',
-                'issuedAt', ARGV[2],
-                'expiresAt', ARGV[3],
+                'reservedAdmissionToken', ARGV[2],
+                'issuedAt', ARGV[3],
+                'expiresAt', ARGV[4],
                 'sequence', sequence)
-            redis.call('PEXPIREAT', KEYS[5], ARGV[3])
+            redis.call('PEXPIREAT', KEYS[5], ARGV[4])
             redis.call('SADD', KEYS[6], KEYS[5])
             redis.call('HINCRBY', KEYS[4], 'issued', 1)
 
@@ -56,19 +59,79 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
             """);
 
     private static final RedisScript<String> POLL_SCRIPT = script("""
-            local expiredTickets = redis.call('ZRANGEBYSCORE', KEYS[2], '-inf', ARGV[3])
+            local expiredTickets = redis.call('ZRANGEBYSCORE', KEYS[2], '-inf', ARGV[2])
             for _, expiredTicketId in ipairs(expiredTickets) do
                 redis.call('ZREM', KEYS[1], expiredTicketId)
             end
             if #expiredTickets > 0 then
-                redis.call('ZREMRANGEBYSCORE', KEYS[2], '-inf', ARGV[3])
+                redis.call('ZREMRANGEBYSCORE', KEYS[2], '-inf', ARGV[2])
                 redis.call('HINCRBY', KEYS[4], 'expiredTickets', #expiredTickets)
             end
 
-            local expiredAdmissions = redis.call('ZRANGEBYSCORE', KEYS[3], '-inf', ARGV[3])
+            local expiredAdmissions = redis.call('ZRANGEBYSCORE', KEYS[3], '-inf', ARGV[2])
             if #expiredAdmissions > 0 then
-                redis.call('ZREMRANGEBYSCORE', KEYS[3], '-inf', ARGV[3])
+                redis.call('ZREMRANGEBYSCORE', KEYS[3], '-inf', ARGV[2])
                 redis.call('HINCRBY', KEYS[4], 'expiredAdmissions', #expiredAdmissions)
+            end
+
+            local active = redis.call('ZCARD', KEYS[3])
+            local available = tonumber(ARGV[4]) - active
+            while available > 0 do
+                local head = redis.call('ZRANGE', KEYS[1], 0, 0)[1]
+                if not head then
+                    break
+                end
+
+                local headTicketKey = ARGV[5] .. head
+                if redis.call('EXISTS', headTicketKey) == 0 then
+                    redis.call('ZREM', KEYS[1], head)
+                    redis.call('ZREM', KEYS[2], head)
+                    redis.call('HINCRBY', KEYS[4], 'expiredTickets', 1)
+                else
+                    local token = redis.call('HGET', headTicketKey, 'reservedAdmissionToken')
+                    local admissionKey = ARGV[6] .. token
+                    local sequence = tonumber(redis.call('HGET', headTicketKey, 'sequence'))
+                    local lastSequence = tonumber(
+                        redis.call('HGET', KEYS[4], 'lastAdmittedSequence') or '0'
+                    )
+                    if sequence < lastSequence then
+                        redis.call('HINCRBY', KEYS[4], 'fifoViolations', 1)
+                    end
+                    redis.call('HSET', KEYS[4], 'lastAdmittedSequence', sequence)
+
+                    local issuedAt = tonumber(redis.call('HGET', headTicketKey, 'issuedAt'))
+                    local waitDuration = tonumber(ARGV[2]) - issuedAt
+                    redis.call('HINCRBY', KEYS[4], 'admitted', 1)
+                    redis.call('HINCRBY', KEYS[4], 'totalWaitDurationMillis', waitDuration)
+                    local maxWait = tonumber(
+                        redis.call('HGET', KEYS[4], 'maxWaitDurationMillis') or '0'
+                    )
+                    if waitDuration > maxWait then
+                        redis.call('HSET', KEYS[4], 'maxWaitDurationMillis', waitDuration)
+                    end
+
+                    redis.call('ZREM', KEYS[1], head)
+                    redis.call('ZREM', KEYS[2], head)
+                    redis.call('ZADD', KEYS[3], ARGV[3], token)
+                    redis.call('HSET', headTicketKey,
+                        'state', 'ADMITTED',
+                        'token', token,
+                        'admittedAt', ARGV[2],
+                        'admissionExpiresAt', ARGV[3])
+                    redis.call('PEXPIREAT', headTicketKey, ARGV[3])
+                    redis.call('HSET', admissionKey,
+                        'state', 'READY',
+                        'ticketId', head)
+                    redis.call('PEXPIREAT', admissionKey, ARGV[3])
+                    redis.call('SADD', KEYS[6], admissionKey)
+                    available = available - 1
+                    active = active + 1
+                end
+            end
+
+            local maxActive = tonumber(redis.call('HGET', KEYS[4], 'maxActive') or '0')
+            if active > maxActive then
+                redis.call('HSET', KEYS[4], 'maxActive', active)
             end
 
             if redis.call('EXISTS', KEYS[5]) == 0 then
@@ -95,47 +158,7 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
             if not rank then
                 return 'EXPIRED'
             end
-            if rank > 0 or redis.call('ZCARD', KEYS[3]) >= tonumber(ARGV[5]) then
-                return 'QUEUED|' .. (rank + 1)
-            end
-
-            local sequence = tonumber(redis.call('HGET', KEYS[5], 'sequence'))
-            local lastSequence = tonumber(redis.call('HGET', KEYS[4], 'lastAdmittedSequence') or '0')
-            if sequence < lastSequence then
-                redis.call('HINCRBY', KEYS[4], 'fifoViolations', 1)
-            end
-            redis.call('HSET', KEYS[4], 'lastAdmittedSequence', sequence)
-
-            local issuedAt = tonumber(redis.call('HGET', KEYS[5], 'issuedAt'))
-            local waitDuration = tonumber(ARGV[3]) - issuedAt
-            redis.call('HINCRBY', KEYS[4], 'admitted', 1)
-            redis.call('HINCRBY', KEYS[4], 'totalWaitDurationMillis', waitDuration)
-            local maxWait = tonumber(redis.call('HGET', KEYS[4], 'maxWaitDurationMillis') or '0')
-            if waitDuration > maxWait then
-                redis.call('HSET', KEYS[4], 'maxWaitDurationMillis', waitDuration)
-            end
-
-            redis.call('ZREM', KEYS[1], ARGV[1])
-            redis.call('ZREM', KEYS[2], ARGV[1])
-            redis.call('ZADD', KEYS[3], ARGV[4], ARGV[2])
-            redis.call('HSET', KEYS[5],
-                'state', 'ADMITTED',
-                'token', ARGV[2],
-                'admittedAt', ARGV[3],
-                'admissionExpiresAt', ARGV[4])
-            redis.call('PEXPIREAT', KEYS[5], ARGV[4])
-            redis.call('HSET', KEYS[6],
-                'state', 'READY',
-                'ticketId', ARGV[1])
-            redis.call('PEXPIREAT', KEYS[6], ARGV[4])
-            redis.call('SADD', KEYS[7], KEYS[6])
-
-            local active = redis.call('ZCARD', KEYS[3])
-            local maxActive = tonumber(redis.call('HGET', KEYS[4], 'maxActive') or '0')
-            if active > maxActive then
-                redis.call('HSET', KEYS[4], 'maxActive', active)
-            end
-            return 'ADMITTED|' .. ARGV[2] .. '|' .. ARGV[4] .. '|' .. waitDuration
+            return 'QUEUED|' .. (rank + 1)
             """);
 
     private static final RedisScript<String> CLAIM_SCRIPT = script("""
@@ -221,7 +244,12 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
     }
 
     @Override
-    public EnqueuedTicket enqueue(String ticketId, Instant issuedAt, Instant expiresAt) {
+    public EnqueuedTicket enqueue(
+            String ticketId,
+            String reservedAdmissionToken,
+            Instant issuedAt,
+            Instant expiresAt
+    ) {
         var result = execute(
                 ENQUEUE_SCRIPT,
                 List.of(
@@ -233,6 +261,7 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
                         KNOWN_KEYS_KEY
                 ),
                 ticketId,
+                reservedAdmissionToken,
                 epochMillis(issuedAt),
                 epochMillis(expiresAt)
         );
@@ -243,7 +272,6 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
     @Override
     public PollDecision poll(
             String ticketId,
-            String candidateAdmissionToken,
             Instant now,
             Instant admissionExpiresAt,
             int maxConcurrency
@@ -256,14 +284,14 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
                         ACTIVE_KEY,
                         METRICS_KEY,
                         ticketKey(ticketId),
-                        admissionKey(candidateAdmissionToken),
                         KNOWN_KEYS_KEY
                 ),
                 ticketId,
-                candidateAdmissionToken,
                 epochMillis(now),
                 epochMillis(admissionExpiresAt),
-                maxConcurrency
+                maxConcurrency,
+                TICKET_KEY_PREFIX,
+                ADMISSION_KEY_PREFIX
         );
         var values = result.split("\\|", -1);
         return switch (values[0]) {
@@ -388,11 +416,11 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
     }
 
     private static String ticketKey(String ticketId) {
-        return PREFIX + "ticket:" + ticketId;
+        return TICKET_KEY_PREFIX + ticketId;
     }
 
     private static String admissionKey(String admissionToken) {
-        return PREFIX + "admission:" + admissionToken;
+        return ADMISSION_KEY_PREFIX + admissionToken;
     }
 
     private static long epochMillis(Instant instant) {
