@@ -1,0 +1,304 @@
+{
+  "state": {
+    "isStdOutTTY": false,
+    "isStdErrTTY": false,
+    "testRunDurationMs": 57289.283
+  },
+  "metrics": {
+    "http_req_tls_handshaking": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "count": 97,
+        "avg": 0,
+        "min": 0,
+        "p(50)": 0,
+        "p(90)": 0,
+        "p(95)": 0,
+        "p(99)": 0,
+        "max": 0
+      }
+    },
+    "http_req_duration{scenario:kafka_outbox_orders}": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(99)": 34.991359999999986,
+        "max": 45.872,
+        "count": 97,
+        "avg": 24.263814432989687,
+        "min": 9.576,
+        "p(50)": 25.45,
+        "p(90)": 29.9934,
+        "p(95)": 30.6324
+      },
+      "thresholds": {
+        "p(95)<1500": {
+          "ok": true
+        },
+        "p(99)<3000": {
+          "ok": true
+        }
+      }
+    },
+    "event_lab_direct_success_total": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "rate": 1.693161354454375,
+        "count": 97
+      }
+    },
+    "vus": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "value": 0,
+        "min": 0,
+        "max": 1
+      }
+    },
+    "http_req_failed": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0,
+        "passes": 0,
+        "fails": 97
+      }
+    },
+    "data_sent": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "count": 25854,
+        "rate": 451.2885944130249
+      }
+    },
+    "http_req_duration{expected_response:true}": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "max": 45.872,
+        "count": 97,
+        "avg": 24.263814432989687,
+        "min": 9.576,
+        "p(50)": 25.45,
+        "p(90)": 29.9934,
+        "p(95)": 30.6324,
+        "p(99)": 34.991359999999986
+      }
+    },
+    "http_req_connecting": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 0.36140000000000005,
+        "p(95)": 0.4391999999999999,
+        "p(99)": 0.4967599999999998,
+        "max": 0.707,
+        "count": 97,
+        "avg": 0.07771134020618554,
+        "min": 0,
+        "p(50)": 0
+      }
+    },
+    "http_req_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 29.9934,
+        "p(95)": 30.6324,
+        "p(99)": 34.991359999999986,
+        "max": 45.872,
+        "count": 97,
+        "avg": 24.263814432989687,
+        "min": 9.576,
+        "p(50)": 25.45
+      }
+    },
+    "http_req_receiving": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "count": 97,
+        "avg": 0.2371752577319587,
+        "min": 0.066,
+        "p(50)": 0.215,
+        "p(90)": 0.352,
+        "p(95)": 0.4394,
+        "p(99)": 0.6048399999999994,
+        "max": 1.273
+      }
+    },
+    "iteration_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "max": 46.853416,
+        "count": 97,
+        "avg": 25.08242646391754,
+        "min": 10.151208,
+        "p(50)": 26.19325,
+        "p(90)": 30.932091399999997,
+        "p(95)": 31.803725,
+        "p(99)": 35.77089663999999
+      }
+    },
+    "iterations": {
+      "values": {
+        "count": 97,
+        "rate": 1.693161354454375
+      },
+      "type": "counter",
+      "contains": "default"
+    },
+    "http_req_sending": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "max": 0.116,
+        "count": 97,
+        "avg": 0.05238144329896908,
+        "min": 0.012,
+        "p(50)": 0.05,
+        "p(90)": 0.07900000000000003,
+        "p(95)": 0.09659999999999999,
+        "p(99)": 0.11408
+      }
+    },
+    "http_req_waiting": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(50)": 25.306,
+        "p(90)": 29.8066,
+        "p(95)": 30.4618,
+        "p(99)": 34.670519999999996,
+        "max": 44.571,
+        "count": 97,
+        "avg": 23.97425773195877,
+        "min": 9.456
+      }
+    },
+    "checks": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 1,
+        "passes": 291,
+        "fails": 0
+      }
+    },
+    "event_lab_direct_error_rate": {
+      "thresholds": {
+        "rate<0.01": {
+          "ok": true
+        }
+      },
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0,
+        "passes": 0,
+        "fails": 97
+      }
+    },
+    "vus_max": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "value": 20,
+        "min": 20,
+        "max": 20
+      }
+    },
+    "http_req_blocked": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 0.4982000000000001,
+        "p(95)": 0.5771999999999999,
+        "p(99)": 0.7406399999999999,
+        "max": 0.852,
+        "count": 97,
+        "avg": 0.11315463917525763,
+        "min": 0.003,
+        "p(50)": 0.013
+      }
+    },
+    "event_lab_direct_success_rate": {
+      "values": {
+        "rate": 1,
+        "passes": 97,
+        "fails": 0
+      },
+      "thresholds": {
+        "rate>0.99": {
+          "ok": true
+        }
+      },
+      "type": "rate",
+      "contains": "default"
+    },
+    "data_received": {
+      "values": {
+        "count": 36949,
+        "rate": 644.9548338735536
+      },
+      "type": "counter",
+      "contains": "data"
+    },
+    "http_reqs": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 97,
+        "rate": 1.693161354454375
+      }
+    }
+  },
+  "root_group": {
+    "checks": [
+      {
+        "name": "lab order status is 201",
+        "path": "::lab order status is 201",
+        "id": "3ea2589aff1230c23842d46cc06ae0db",
+        "passes": 97,
+        "fails": 0
+      },
+      {
+        "fails": 0,
+        "name": "lab order response strategy matches",
+        "path": "::lab order response strategy matches",
+        "id": "4c7d653e0f1e9b24d60515450612a9e6",
+        "passes": 97
+      },
+      {
+        "fails": 0,
+        "name": "lab order response has event id",
+        "path": "::lab order response has event id",
+        "id": "ab3bf71172a3f073bb39d82e17d4818d",
+        "passes": 97
+      }
+    ],
+    "name": "",
+    "path": "",
+    "id": "d41d8cd98f00b204e9800998ecf8427e",
+    "groups": []
+  },
+  "options": {
+    "summaryTimeUnit": "",
+    "noColor": true,
+    "summaryTrendStats": [
+      "avg",
+      "min",
+      "p(50)",
+      "p(90)",
+      "p(95)",
+      "p(99)",
+      "max",
+      "count"
+    ]
+  }
+}

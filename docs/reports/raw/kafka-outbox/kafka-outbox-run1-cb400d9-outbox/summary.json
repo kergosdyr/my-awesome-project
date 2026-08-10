@@ -1,0 +1,304 @@
+{
+  "metrics": {
+    "iterations": {
+      "contains": "default",
+      "values": {
+        "count": 97,
+        "rate": 1.6933203139695174
+      },
+      "type": "counter"
+    },
+    "data_sent": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "rate": 451.3484197699162,
+        "count": 25855
+      }
+    },
+    "http_req_sending": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 0.08839999999999999,
+        "p(95)": 0.09939999999999997,
+        "p(99)": 0.11324,
+        "max": 0.119,
+        "count": 97,
+        "avg": 0.05331958762886596,
+        "min": 0.012,
+        "p(50)": 0.05
+      }
+    },
+    "http_req_waiting": {
+      "values": {
+        "avg": 17.95078350515464,
+        "min": 6.144,
+        "p(50)": 19.237,
+        "p(90)": 23.0996,
+        "p(95)": 24.2154,
+        "p(99)": 35.392679999999984,
+        "max": 52.281,
+        "count": 97
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "iteration_duration": {
+      "contains": "time",
+      "values": {
+        "p(99)": 36.420360639999984,
+        "max": 53.092,
+        "count": 97,
+        "avg": 19.03884624742268,
+        "min": 6.63225,
+        "p(50)": 20.171708,
+        "p(90)": 24.232333,
+        "p(95)": 26.206425
+      },
+      "type": "trend"
+    },
+    "http_req_receiving": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(99)": 0.5495199999999999,
+        "max": 0.682,
+        "count": 97,
+        "avg": 0.1997525773195876,
+        "min": 0.06,
+        "p(50)": 0.171,
+        "p(90)": 0.3464000000000001,
+        "p(95)": 0.40759999999999996
+      }
+    },
+    "event_lab_outbox_success_total": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 97,
+        "rate": 1.6933203139695174
+      }
+    },
+    "data_received": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "count": 37053,
+        "rate": 646.8309030259023
+      }
+    },
+    "http_reqs": {
+      "contains": "default",
+      "values": {
+        "count": 97,
+        "rate": 1.6933203139695174
+      },
+      "type": "counter"
+    },
+    "http_req_failed": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0,
+        "passes": 0,
+        "fails": 97
+      }
+    },
+    "http_req_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "min": 6.239,
+        "p(50)": 19.581,
+        "p(90)": 23.5204,
+        "p(95)": 24.711199999999998,
+        "p(99)": 35.591999999999985,
+        "max": 52.416,
+        "count": 97,
+        "avg": 18.20385567010309
+      }
+    },
+    "vus": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "min": 0,
+        "max": 1,
+        "value": 0
+      }
+    },
+    "http_req_tls_handshaking": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "count": 97,
+        "avg": 0,
+        "min": 0,
+        "p(50)": 0,
+        "p(90)": 0,
+        "p(95)": 0,
+        "p(99)": 0,
+        "max": 0
+      }
+    },
+    "http_req_duration{expected_response:true}": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 18.20385567010309,
+        "min": 6.239,
+        "p(50)": 19.581,
+        "p(90)": 23.5204,
+        "p(95)": 24.711199999999998,
+        "p(99)": 35.591999999999985,
+        "max": 52.416,
+        "count": 97
+      }
+    },
+    "event_lab_outbox_success_rate": {
+      "contains": "default",
+      "values": {
+        "rate": 1,
+        "passes": 97,
+        "fails": 0
+      },
+      "thresholds": {
+        "rate>0.99": {
+          "ok": true
+        }
+      },
+      "type": "rate"
+    },
+    "http_req_connecting": {
+      "contains": "time",
+      "values": {
+        "p(90)": 0.4314,
+        "p(95)": 0.4442,
+        "p(99)": 0.45940000000000003,
+        "max": 0.469,
+        "count": 97,
+        "avg": 0.08230927835051546,
+        "min": 0,
+        "p(50)": 0
+      },
+      "type": "trend"
+    },
+    "vus_max": {
+      "values": {
+        "max": 20,
+        "value": 20,
+        "min": 20
+      },
+      "type": "gauge",
+      "contains": "default"
+    },
+    "http_req_blocked": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "count": 97,
+        "avg": 0.12211340206185559,
+        "min": 0.003,
+        "p(50)": 0.013,
+        "p(90)": 0.5586000000000001,
+        "p(95)": 0.5803999999999999,
+        "p(99)": 0.6129999999999994,
+        "max": 1.165
+      }
+    },
+    "event_lab_outbox_error_rate": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0,
+        "passes": 0,
+        "fails": 97
+      },
+      "thresholds": {
+        "rate<0.01": {
+          "ok": true
+        }
+      }
+    },
+    "http_req_duration{scenario:kafka_outbox_orders}": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(99)": 35.591999999999985,
+        "max": 52.416,
+        "count": 97,
+        "avg": 18.20385567010309,
+        "min": 6.239,
+        "p(50)": 19.581,
+        "p(90)": 23.5204,
+        "p(95)": 24.711199999999998
+      },
+      "thresholds": {
+        "p(95)<1500": {
+          "ok": true
+        },
+        "p(99)<3000": {
+          "ok": true
+        }
+      }
+    },
+    "checks": {
+      "contains": "default",
+      "values": {
+        "rate": 1,
+        "passes": 291,
+        "fails": 0
+      },
+      "type": "rate"
+    }
+  },
+  "root_group": {
+    "name": "",
+    "path": "",
+    "id": "d41d8cd98f00b204e9800998ecf8427e",
+    "groups": [],
+    "checks": [
+        {
+          "name": "lab order status is 201",
+          "path": "::lab order status is 201",
+          "id": "3ea2589aff1230c23842d46cc06ae0db",
+          "passes": 97,
+          "fails": 0
+        },
+        {
+          "name": "lab order response strategy matches",
+          "path": "::lab order response strategy matches",
+          "id": "4c7d653e0f1e9b24d60515450612a9e6",
+          "passes": 97,
+          "fails": 0
+        },
+        {
+          "name": "lab order response has event id",
+          "path": "::lab order response has event id",
+          "id": "ab3bf71172a3f073bb39d82e17d4818d",
+          "passes": 97,
+          "fails": 0
+        }
+      ]
+  },
+  "options": {
+    "summaryTimeUnit": "",
+    "noColor": true,
+    "summaryTrendStats": [
+      "avg",
+      "min",
+      "p(50)",
+      "p(90)",
+      "p(95)",
+      "p(99)",
+      "max",
+      "count"
+    ]
+  },
+  "state": {
+    "isStdOutTTY": false,
+    "isStdErrTTY": false,
+    "testRunDurationMs": 57283.905
+  }
+}
