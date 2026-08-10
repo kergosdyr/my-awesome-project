@@ -17,7 +17,6 @@ public record WaitingRoomProperties(
         @NotNull Duration ticketTtl,
         @NotNull Duration admissionTtl,
         @NotNull Duration processingLeaseTtl,
-        @DefaultValue("100ms") @NotNull Duration promotionReadinessTtl,
         @DefaultValue("1s") @NotNull Duration pollInterval
 ) implements WaitingRoomPolicy {
 
@@ -26,7 +25,6 @@ public record WaitingRoomProperties(
         requirePositive(ticketTtl, "ticket-ttl");
         requirePositive(admissionTtl, "admission-ttl");
         requirePositive(processingLeaseTtl, "processing-lease-ttl");
-        requirePositive(promotionReadinessTtl, "promotion-readiness-ttl");
         requirePositive(pollInterval, "poll-interval");
         if (processingLeaseTtl.compareTo(workDuration) <= 0) {
             throw new IllegalArgumentException("processing-lease-ttl must exceed work-duration");

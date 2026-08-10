@@ -60,14 +60,13 @@ class WaitingRoomServiceTest {
     }
 
     @Test
-    void promotesOnlyFreshQueueHeadsInStrictFifoOrder() {
+    void admitsOnlyTheRequestedHeadWithoutPrePromotingIdleTickets() {
         var fourSlotPolicy = new TestPolicy(
                 4,
                 Duration.ofMillis(1),
                 Duration.ofSeconds(30),
                 Duration.ofSeconds(10),
                 Duration.ofSeconds(5),
-                Duration.ofMillis(100),
                 Duration.ofMillis(10)
         );
         var fourSlotService = new WaitingRoomService(
@@ -94,21 +93,27 @@ class WaitingRoomServiceTest {
         assertThat(thirdPoll.status()).isEqualTo("QUEUED");
         assertThat(secondPoll.status()).isEqualTo("QUEUED");
         assertThat(metricsBeforeHeadPoll.currentActive()).isZero();
+        assertThat(metricsBeforeHeadPoll.admitted()).isZero();
 
         var firstPoll = fourSlotService.pollTicket(first.ticketId());
-        var metricsAfterBatch = fourSlotService.metrics().waitingRoom();
+        var metricsAfterFirstPoll = fourSlotService.metrics().waitingRoom();
 
         assertThat(firstPoll.status()).isEqualTo("ADMITTED");
-        assertThat(metricsAfterBatch.currentActive()).isEqualTo(4);
-        assertThat(metricsAfterBatch.maxActive()).isEqualTo(4);
-        assertThat(metricsAfterBatch.lastAdmittedSequence()).isEqualTo(4);
-        assertThat(metricsAfterBatch.fifoViolations()).isZero();
-        assertThat(fourSlotService.pollTicket(fourth.ticketId()).status()).isEqualTo("ADMITTED");
-        assertThat(fourSlotService.pollTicket(third.ticketId()).status()).isEqualTo("ADMITTED");
-        assertThat(fourSlotService.pollTicket(second.ticketId()).status()).isEqualTo("ADMITTED");
-        assertThat(fourSlotService.pollTicket(first.ticketId()).status()).isEqualTo("ADMITTED");
+        assertThat(firstPoll.admissionToken()).isNotBlank();
+        assertThat(metricsAfterFirstPoll.currentActive()).isEqualTo(1);
+        assertThat(metricsAfterFirstPoll.admitted()).isEqualTo(1);
+        assertThat(metricsAfterFirstPoll.lastAdmittedSequence()).isEqualTo(1);
 
-        clock.advance(Duration.ofMillis(101));
+        assertThat(fourSlotService.pollTicket(second.ticketId()).status()).isEqualTo("ADMITTED");
+        assertThat(fourSlotService.pollTicket(third.ticketId()).status()).isEqualTo("ADMITTED");
+        assertThat(fourSlotService.pollTicket(fourth.ticketId()).status()).isEqualTo("ADMITTED");
+        var fifthAtCapacity = fourSlotService.pollTicket(fifth.ticketId());
+
+        assertThat(fifthAtCapacity.status()).isEqualTo("QUEUED");
+        assertThat(fifthAtCapacity.position()).isEqualTo(1);
+        assertThat(fourSlotService.metrics().waitingRoom().currentActive()).isEqualTo(4);
+        assertThat(fourSlotService.metrics().waitingRoom().lastAdmittedSequence()).isEqualTo(4);
+
         fourSlotService.purchaseWithAdmission(new WaitingRoomCommand.Purchase(
                 first.ticketId(),
                 firstPoll.admissionToken()
@@ -121,25 +126,6 @@ class WaitingRoomServiceTest {
     }
 
     @Test
-    void neverSkipsAStaleDisconnectedQueueHead() {
-        var first = service.issueTicket();
-        var second = service.issueTicket();
-
-        assertThat(service.pollTicket(second.ticketId()).status()).isEqualTo("QUEUED");
-        clock.advance(Duration.ofMillis(101));
-        var secondFreshPoll = service.pollTicket(second.ticketId());
-
-        assertThat(secondFreshPoll.status()).isEqualTo("QUEUED");
-        assertThat(secondFreshPoll.position()).isEqualTo(2);
-        assertThat(service.metrics().waitingRoom().currentActive()).isZero();
-        assertThat(service.metrics().waitingRoom().lastAdmittedSequence()).isZero();
-
-        assertThat(service.pollTicket(first.ticketId()).status()).isEqualTo("ADMITTED");
-        assertThat(service.metrics().waitingRoom().lastAdmittedSequence()).isEqualTo(1);
-        assertThat(service.metrics().waitingRoom().fifoViolations()).isZero();
-    }
-
-    @Test
     void advisesPollingByQueuePositionAndCapsFarAndOverflowingPositions() {
         var positionAwarePolicy = new TestPolicy(
                 4,
@@ -147,7 +133,6 @@ class WaitingRoomServiceTest {
                 Duration.ofSeconds(30),
                 Duration.ofSeconds(10),
                 Duration.ofSeconds(5),
-                Duration.ofMillis(100),
                 Duration.ofSeconds(1)
         );
         var positionAwareService = new WaitingRoomService(
@@ -167,10 +152,10 @@ class WaitingRoomServiceTest {
         assertThat(tickets.get(160).pollAfterMillis()).isEqualTo(1000);
         assertThat(positionAwareService.calculatePollAfterMillis(Long.MAX_VALUE)).isEqualTo(1000);
 
-        positionAwareService.pollTicket(tickets.get(3).ticketId());
-        positionAwareService.pollTicket(tickets.get(2).ticketId());
-        positionAwareService.pollTicket(tickets.get(1).ticketId());
         var admitted = positionAwareService.pollTicket(tickets.get(0).ticketId());
+        positionAwareService.pollTicket(tickets.get(1).ticketId());
+        positionAwareService.pollTicket(tickets.get(2).ticketId());
+        positionAwareService.pollTicket(tickets.get(3).ticketId());
         var newHead = positionAwareService.pollTicket(tickets.get(4).ticketId());
         var fifthQueuedPosition = positionAwareService.pollTicket(tickets.get(8).ticketId());
         var farQueuedPosition = positionAwareService.pollTicket(tickets.get(164).ticketId());

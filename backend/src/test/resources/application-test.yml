@@ -31,5 +31,4 @@ app:
       ticket-ttl: 30s
       admission-ttl: 10s
       processing-lease-ttl: 5s
-      promotion-readiness-ttl: 100ms
       poll-interval: 1s

@@ -14,7 +14,5 @@ public interface WaitingRoomPolicy {
 
     Duration processingLeaseTtl();
 
-    Duration promotionReadinessTtl();
-
     Duration pollInterval();
 }

@@ -1,6 +1,5 @@
 package io.github.kergosdyr.commercelab.infra.storage.redis.waitingroom;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -75,76 +74,6 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
                 redis.call('HINCRBY', KEYS[4], 'expiredAdmissions', #expiredAdmissions)
             end
 
-            if redis.call('EXISTS', KEYS[5]) == 1
-                    and redis.call('HGET', KEYS[5], 'state') == 'QUEUED' then
-                redis.call('HSET', KEYS[5], 'lastPolledAt', ARGV[2])
-            end
-
-            local active = redis.call('ZCARD', KEYS[3])
-            local available = tonumber(ARGV[5]) - active
-            while available > 0 do
-                local head = redis.call('ZRANGE', KEYS[1], 0, 0)[1]
-                if not head then
-                    break
-                end
-
-                local headTicketKey = ARGV[6] .. head
-                if redis.call('EXISTS', headTicketKey) == 0 then
-                    redis.call('ZREM', KEYS[1], head)
-                    redis.call('ZREM', KEYS[2], head)
-                    redis.call('HINCRBY', KEYS[4], 'expiredTickets', 1)
-                else
-                    local lastPolledAt = tonumber(redis.call('HGET', headTicketKey, 'lastPolledAt'))
-                    if not lastPolledAt or lastPolledAt < tonumber(ARGV[4]) then
-                        break
-                    end
-
-                    local token = redis.call('HGET', headTicketKey, 'reservedAdmissionToken')
-                    local admissionKey = ARGV[7] .. token
-                    local sequence = tonumber(redis.call('HGET', headTicketKey, 'sequence'))
-                    local lastSequence = tonumber(
-                        redis.call('HGET', KEYS[4], 'lastAdmittedSequence') or '0'
-                    )
-                    if sequence < lastSequence then
-                        redis.call('HINCRBY', KEYS[4], 'fifoViolations', 1)
-                    end
-                    redis.call('HSET', KEYS[4], 'lastAdmittedSequence', sequence)
-
-                    local issuedAt = tonumber(redis.call('HGET', headTicketKey, 'issuedAt'))
-                    local waitDuration = tonumber(ARGV[2]) - issuedAt
-                    redis.call('HINCRBY', KEYS[4], 'admitted', 1)
-                    redis.call('HINCRBY', KEYS[4], 'totalWaitDurationMillis', waitDuration)
-                    local maxWait = tonumber(
-                        redis.call('HGET', KEYS[4], 'maxWaitDurationMillis') or '0'
-                    )
-                    if waitDuration > maxWait then
-                        redis.call('HSET', KEYS[4], 'maxWaitDurationMillis', waitDuration)
-                    end
-
-                    redis.call('ZREM', KEYS[1], head)
-                    redis.call('ZREM', KEYS[2], head)
-                    redis.call('ZADD', KEYS[3], ARGV[3], token)
-                    redis.call('HSET', headTicketKey,
-                        'state', 'ADMITTED',
-                        'token', token,
-                        'admittedAt', ARGV[2],
-                        'admissionExpiresAt', ARGV[3])
-                    redis.call('PEXPIREAT', headTicketKey, ARGV[3])
-                    redis.call('HSET', admissionKey,
-                        'state', 'READY',
-                        'ticketId', head)
-                    redis.call('PEXPIREAT', admissionKey, ARGV[3])
-                    redis.call('SADD', KEYS[6], admissionKey)
-                    available = available - 1
-                    active = active + 1
-                end
-            end
-
-            local maxActive = tonumber(redis.call('HGET', KEYS[4], 'maxActive') or '0')
-            if active > maxActive then
-                redis.call('HSET', KEYS[4], 'maxActive', active)
-            end
-
             if redis.call('EXISTS', KEYS[5]) == 0 then
                 redis.call('ZREM', KEYS[1], ARGV[1])
                 redis.call('ZREM', KEYS[2], ARGV[1])
@@ -164,12 +93,64 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
                 redis.call('DEL', KEYS[5])
                 return 'EXPIRED'
             end
+            if state ~= 'QUEUED' then
+                return 'EXPIRED'
+            end
 
             local rank = redis.call('ZRANK', KEYS[1], ARGV[1])
             if not rank then
                 return 'EXPIRED'
             end
-            return 'QUEUED|' .. (rank + 1)
+
+            local active = redis.call('ZCARD', KEYS[3])
+            if rank > 0 or active >= tonumber(ARGV[4]) then
+                return 'QUEUED|' .. (rank + 1)
+            end
+
+            local token = redis.call('HGET', KEYS[5], 'reservedAdmissionToken')
+            local admissionKey = ARGV[5] .. token
+            local sequence = tonumber(redis.call('HGET', KEYS[5], 'sequence'))
+            local lastSequence = tonumber(
+                redis.call('HGET', KEYS[4], 'lastAdmittedSequence') or '0'
+            )
+            if sequence < lastSequence then
+                redis.call('HINCRBY', KEYS[4], 'fifoViolations', 1)
+            end
+            redis.call('HSET', KEYS[4], 'lastAdmittedSequence', sequence)
+
+            local issuedAt = tonumber(redis.call('HGET', KEYS[5], 'issuedAt'))
+            local waitDuration = tonumber(ARGV[2]) - issuedAt
+            redis.call('HINCRBY', KEYS[4], 'admitted', 1)
+            redis.call('HINCRBY', KEYS[4], 'totalWaitDurationMillis', waitDuration)
+            local maxWait = tonumber(
+                redis.call('HGET', KEYS[4], 'maxWaitDurationMillis') or '0'
+            )
+            if waitDuration > maxWait then
+                redis.call('HSET', KEYS[4], 'maxWaitDurationMillis', waitDuration)
+            end
+
+            redis.call('ZREM', KEYS[1], ARGV[1])
+            redis.call('ZREM', KEYS[2], ARGV[1])
+            redis.call('ZADD', KEYS[3], ARGV[3], token)
+            redis.call('HSET', KEYS[5],
+                'state', 'ADMITTED',
+                'token', token,
+                'admittedAt', ARGV[2],
+                'admissionExpiresAt', ARGV[3])
+            redis.call('PEXPIREAT', KEYS[5], ARGV[3])
+            redis.call('HSET', admissionKey,
+                'state', 'READY',
+                'ticketId', ARGV[1])
+            redis.call('PEXPIREAT', admissionKey, ARGV[3])
+            redis.call('SADD', KEYS[6], admissionKey)
+
+            active = active + 1
+            local maxActive = tonumber(redis.call('HGET', KEYS[4], 'maxActive') or '0')
+            if active > maxActive then
+                redis.call('HSET', KEYS[4], 'maxActive', active)
+            end
+
+            return 'ADMITTED|' .. token .. '|' .. ARGV[3] .. '|' .. waitDuration
             """);
 
     private static final RedisScript<String> CLAIM_SCRIPT = script("""
@@ -285,7 +266,6 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
             String ticketId,
             Instant now,
             Instant admissionExpiresAt,
-            Duration promotionReadinessTtl,
             int maxConcurrency
     ) {
         var result = execute(
@@ -301,9 +281,7 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
                 ticketId,
                 epochMillis(now),
                 epochMillis(admissionExpiresAt),
-                readinessCutoffMillis(now, promotionReadinessTtl),
                 maxConcurrency,
-                TICKET_KEY_PREFIX,
                 ADMISSION_KEY_PREFIX
         );
         var values = result.split("\\|", -1);
@@ -438,14 +416,6 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
 
     private static long epochMillis(Instant instant) {
         return instant.toEpochMilli();
-    }
-
-    private static long readinessCutoffMillis(Instant now, Duration readinessTtl) {
-        try {
-            return Math.subtractExact(epochMillis(now), readinessTtl.toMillis());
-        } catch (ArithmeticException exception) {
-            return Long.MIN_VALUE;
-        }
     }
 
     private static String[] split(String value, int expectedSize) {

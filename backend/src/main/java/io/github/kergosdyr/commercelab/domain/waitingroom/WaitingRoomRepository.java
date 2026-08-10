@@ -1,6 +1,5 @@
 package io.github.kergosdyr.commercelab.domain.waitingroom;
 
-import java.time.Duration;
 import java.time.Instant;
 
 public interface WaitingRoomRepository {
@@ -16,7 +15,6 @@ public interface WaitingRoomRepository {
             String ticketId,
             Instant now,
             Instant admissionExpiresAt,
-            Duration promotionReadinessTtl,
             int maxConcurrency
     );
 

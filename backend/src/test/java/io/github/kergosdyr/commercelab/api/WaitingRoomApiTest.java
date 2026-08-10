@@ -41,7 +41,6 @@ class WaitingRoomApiTest {
                         Duration.ofSeconds(30),
                         Duration.ofSeconds(10),
                         Duration.ofSeconds(5),
-                        Duration.ofMillis(100),
                         Duration.ofSeconds(1)
                 ),
                 new MutableClock(Instant.parse("2026-08-11T00:00:00Z"))
@@ -89,7 +88,6 @@ class WaitingRoomApiTest {
 
         mockMvc.perform(get("/api/labs/waiting-room/metrics"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.policy.promotionReadinessTtlMillis").value(100))
                 .andExpect(jsonPath("$.data.waitingRoom.completed").value(1))
                 .andExpect(jsonPath("$.data.waitingRoom.maxActive").value(1))
                 .andExpect(jsonPath("$.data.waitingRoom.fifoViolations").value(0));
@@ -122,6 +120,15 @@ class WaitingRoomApiTest {
                 ))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.pollAfterMillis").value(0));
+        for (var index = 1; index < activeTicketIds.size(); index++) {
+            mockMvc.perform(get(
+                            "/api/labs/waiting-room/tickets/{ticketId}",
+                            activeTicketIds.get(index)
+                    ))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.status").value("ADMITTED"))
+                    .andExpect(jsonPath("$.data.pollAfterMillis").value(0));
+        }
 
         String queueHeadTicketId = null;
         String fifthQueuedTicketId = null;
