@@ -1,6 +1,6 @@
 # Lab: Redis FIFO 대기열
 
-- 상태: 진행 중
+- 상태: 완료
 - 작성일: 2026-08-11
 - 관련 Issue: [#3](https://github.com/kergosdyr/my-awesome-project/issues/3)
 
@@ -15,7 +15,7 @@
 | 진입 방식 | `POST /direct` | 대기표 → polling → 입장 토큰 → 구매 |
 | 초과 요청 | HTTP 429 | FIFO 대기 후 TTL 만료 시 HTTP 410 |
 | 활성 상한 | JVM semaphore | Redis active lease + 동일 JVM semaphore |
-| Git commit / tag |  |  |
+| Git commit / tag | `0e9dcb1` | `0e9dcb1` |
 
 ## 정책과 불변식
 
@@ -114,24 +114,75 @@ bash load-tests/run-waiting-room-lab.sh
 
 ## 결과
 
+2026-08-10 UTC에 commit `0e9dcb1`의 direct/queued를 각각 3회 완주했다.
+아래 값은 sample을 합친 percentile이 아니라 **각 run 값 3개의 중앙값**이다.
+원시 summary, backend metrics, 환경과 제외 근거는
+[raw evidence README](../reports/raw/waiting-room/README.md)에 보존했다.
+
 | 지표 | 직접 요청 | Redis 대기열 | 변화 |
 | --- | ---: | ---: | ---: |
-| accepted |  |  |  |
-| queued |  |  |  |
-| rejected |  |  |  |
-| wait duration p50 / p95 / p99 |  |  |  |
-| backend max active |  |  |  |
-| backend max queue depth |  |  |  |
-| FIFO violations |  |  |  |
-| expired tickets / admissions |  |  |  |
-| bypass rejected |  |  |  |
+| accepted | 5,509 | 7,574 | +2,065 (+37.5%) |
+| rejected | 2,065 | 0 | -2,065 (-100%) |
+| accepted / 전체 flow | 72.74% | 100% | +27.26%p |
+| accepted E2E p50 / p95 / p99 | 52 / 60 / 61ms | 14,054.5 / 27,880.8 / 28,255ms | p50 +14,002.5ms |
+| queue wait p50 / p95 / p99 | 해당 없음 | 14,003 / 27,828.8 / 28,202ms | 대기 비용 추가 |
+| 전체 HTTP requests | 7,954 | 191,071 | 약 24.0배 |
+| peak VU | 5 | 1,962 | 약 392배 |
+| downstream max active | 4 | 4 | 상한 유지 |
+| backend max queue depth | 0 | 1,960 | +1,960 |
+| FIFO violations | 해당 없음 | 0 | 위반 없음 |
+| expired tickets / admissions | 0 / 0 | 0 / 0 | 만료 없음 |
+| lab errors / dropped iterations | 0 / 0 | 0 / 0 | 모두 완주 |
+
+direct run별 accepted/rejected는 5,505/2,070, 5,509/2,065,
+5,518/2,057이었고 queued는 세 번 모두 7,574/0이었다. direct의 HTTP 429는
+의도한 제어 결과라 k6 `http_req_failed`에는 잡히지만 lab error에는 포함하지
+않는다. queued의 191,071은 ticket 발급, poll, 구매, metrics sampling을 합친
+전체 HTTP 수이며 정확한 poll-only counter가 아니다.
+
+## 실패 정책 검증
+
+| 시나리오 | 관측 | 판정 |
+| --- | --- | --- |
+| Redis 중단 | ticket 발급 503, metrics 503, Redis 비의존 direct 구매 200 | queue는 fail-closed, 비교군은 독립 동작 |
+| token 위조 / replay | 정상 구매 200, 위조 token 403, 소비 token replay 410 | bypass와 재사용 차단 |
+| admission TTL | active 4에서 5번째 poll 202, 11초 뒤 200, 첫 만료 token 구매 410 | 4개 만료 slot 회수 후 FIFO 재입장 |
+
+정확한 admission TTL 재현의 중간 metrics는 `currentActive=4`, `maxActive=4`,
+최종 metrics는 `expiredAdmissions=4`, `currentActive=1`,
+`lastAdmittedSequence=5`, `fifoViolations=0`이었다. 각 요청의 curl trace,
+응답 body와 HTTP status는
+[`failure-admission-expiry-0e9dcb1`](../reports/raw/waiting-room/failure-admission-expiry-0e9dcb1/)에
+있다. admission을 2개만 활성화했던 기존 결과는 삭제하지 않고
+`failure-admission-expiry-invalid-preflight-0e9dcb1`로 이름을 바꿔 제외했다.
 
 ## 해석과 한계
 
-- 가설 채택 / 기각:
-- 사용자 지표와 backend counter를 함께 본 원인:
-- 단일 Redis node 및 단일 애플리케이션 인스턴스라는 한계:
-- 다음 실험:
+가설은 부분 채택한다. Redis 대기열은 downstream 동시 처리 상한 4와 FIFO를
+지키면서 direct의 중앙값 2,065건 HTTP 429를 0으로 만들었다. 다만 처리 용량을
+높인 것이 아니라 거절을 대기로 전환한 결과다. 동일 도착 프로파일에서 direct는
+약 90.067초에 끝났지만 queued는 남은 대기열을 비우느라 약 113.161초가
+걸렸다. 따라서 accepted +37.5%를 throughput 향상으로 해석하면 안 된다.
+
+그 대가는 중앙값 14.003초의 queue wait, p99 28.202초, 전체 HTTP 약 24배,
+peak VU 1,962와 max queue depth 1,960이다. queued p99 대기는 30초 ticket TTL과
+약 1.8초 차이뿐이어서 처리시간이나 부하가 조금만 증가해도 만료가 생길 수 있다.
+최종 3회에는 만료·downstream rejection·FIFO 위반·drop이 없었지만, 이 안정성은
+현재 50ms 작업과 100 RPS 프로파일 범위의 관측이다.
+
+최종 비교에서 제외한 `14bc9ed`/`c6d1237` preflight는 중단, incomplete run,
+error 또는 dropped iteration이 있어 개선율 계산에 사용할 수 없다. 특히
+`14bc9ed` queued preflight의 473,624는 정확한 poll 횟수가 아니라 ticket,
+poll, purchase, metrics 요청을 모두 합친 `http_reqs`다. 실패한 설계의 poll
+amplification을 보여 주는 방향성 증거로만 남긴다.
+
+실험은 Apple M4 단일 호스트, 단일 애플리케이션 인스턴스와 단일 Redis node에서
+각 모드 3회만 수행했다. 저장된 `environment.txt`의 `[compose-services]`가 비어
+있어 해당 파일만으로 실행 시점의 container CPU/memory 제한 적용 여부를
+독립 입증할 수 없다. 실제 주문·재고·DB lock, 다중 인스턴스, Redis failover와
+network partition도 포함하지 않았다. 다음 실험에서는 operation별 poll counter,
+더 긴 steady state, ticket TTL 여유, SSE/push 또는 취소 가능한 queue를 비교해야
+한다.
 
 이 lab의 downstream은 실제 주문·재고를 변경하지 않는 50ms 제어 작업이다. Redis release가 downstream 완료 뒤 실패하면 호출자는 503을 받더라도 작업은 이미 수행됐을 수 있으며, processing lease가 만료될 때 slot만 복구된다. 실제 주문 통합에서는 별도의 idempotency와 완료 기록이 필요하다. 또한 처리 시간이 5초 lease를 넘으면 만료 정리가 새 slot을 열 수 있으므로, 운영 구성에서는 최악 처리 시간보다 충분히 긴 lease와 갱신 전략이 필요하다.
 
@@ -139,6 +190,8 @@ poll은 요청 대기표가 현재 queue head이고 빈 slot이 있을 때만 �
 
 `WAITING_ROOM_POLL_INTERVAL`은 고정 주기가 아니라 최대 advice다. 응답의 `pollAfterMillis`는 `batchesAhead = floor((position - 1) / maxConcurrency)`, `floor = max(1ms, workDuration / 5)`, `estimate = batchesAhead × workDuration`, `advice = min(maxPollInterval, max(floor, estimate / 2))`로 계산한다. 기본값에서는 position 1~4가 10ms, 5~8이 25ms이고 먼 대기표는 최대 1초다. admitted 응답은 더 polling하지 않도록 0을 반환한다.
 
-이 방식은 모든 사용자의 고정 100ms polling이 만든 약 5,000 HTTP requests/s 증폭을 피하면서, head poll과 token 전달 사이에 admission slot이 놀지 않게 한다. client는 최초 발급값을 계속 재사용하지 않고 **매 queued 응답의 최신 `pollAfterMillis`로 다음 sleep을 교체**해야 한다. 대신 head 주변 요청은 1초 고정보다 많아지고 계산은 현재 position과 50ms 처리시간을 이용한 근사치이므로, 실제 wait duration과 HTTP 요청 수를 함께 측정해야 한다. client가 advice보다 자주 polling하지 않는다는 전제도 필요하다.
-
-측정 전 문서이므로 결과와 결론은 비워 둔다.
+client는 최초 발급값을 계속 재사용하지 않고 **매 queued 응답의 최신
+`pollAfterMillis`로 다음 sleep을 교체**해야 한다. position-aware advice는 실패한
+고정 100ms preflight보다 polling을 줄이기 위한 것이지만, 최종 queued도 direct보다
+전체 HTTP가 약 24배 많았다. 운영형 설계에서는 client가 advice보다 자주 poll하지
+않도록 하고 서버에서 polling rate와 queue age를 직접 관측해야 한다.

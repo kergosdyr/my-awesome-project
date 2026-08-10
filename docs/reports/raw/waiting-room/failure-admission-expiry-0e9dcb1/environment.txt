@@ -1,0 +1,51 @@
+captured_at_utc: 2026-08-10T17:18:35Z..2026-08-10T17:18:46Z
+git_commit: 0e9dcb17eb3706878f102e3920936e74297bd87a
+git_describe: 0e9dcb1
+compose_project: waitinglab
+base_url: http://localhost:8080
+curl: 8.7.1
+redis_image: redis:7.4.2-alpine
+
+[stack-before-capture]
+waitinglab-backend-1: running, healthy, port 8080
+waitinglab-frontend-1: running, port 3000
+waitinglab-mysql-1: running, healthy, port 3306
+waitinglab-redis-1: running, healthy, port 6379
+
+[resolved-policy]
+maxConcurrency: 4
+workDurationMillis: 50
+ticketTtlMillis: 30000
+admissionTtlMillis: 10000
+processingLeaseTtlMillis: 5000
+pollIntervalMillis: 1000
+
+[procedure]
+1. POST reset.
+2. Issue four tickets before polling any ticket.
+3. Poll ticket 1, 2, 3, and 4 in FIFO head order; each poll returns its token.
+4. Verify waiting-room currentActive=4, maxActive=4, downstream currentActive=0.
+5. Issue ticket 5 and poll it at capacity; it remains QUEUED at position 1 with HTTP 202.
+6. Wait 11 seconds, exceeding the 10-second admission TTL.
+7. Poll ticket 5 again; expired admissions are reclaimed and it is admitted with HTTP 200.
+8. Purchase with ticket 1's old token; it returns HTTP 410 WAITING_ROOM_TICKET_EXPIRED.
+9. Verify final issued=5, admitted=5, expiredAdmissions=4, currentActive=1,
+   maxActive=4, lastAdmittedSequence=5, and fifoViolations=0.
+
+[observed-statuses]
+01 reset: 200
+02..05 issue tickets 1..4: 202 each
+06..09 poll tickets 1..4: 200 each
+10 active-four metrics: 200
+11 issue ticket 5: 202
+12 poll ticket 5 at capacity: 202
+13 poll ticket 5 after 11 seconds: 200
+14 purchase with expired ticket 1 token: 410
+15 final metrics: 200
+
+[capture-format]
+Each numbered request has a curl `*-trace.txt` containing the exact request and
+HTTP response headers, a `*-response.json` response body, and a `*-status.txt`
+status code. Metrics were captured both at four active admissions and after the
+expiry/re-admission flow. `captured-identifiers.json` links the first and fifth
+ticket IDs to the first admission token used in the 410 check.
