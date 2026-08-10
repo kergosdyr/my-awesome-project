@@ -70,6 +70,19 @@ describe('StorefrontPage', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
+  it('route loading fallback에서는 버려질 입력을 받지 않는다', () => {
+    render(
+      <StorefrontPage
+        initialCatalog={{ status: 'loading', products: [], error: null }}
+        interactionDisabled
+        loadInitialCatalog={false}
+      />,
+    )
+
+    expect(screen.getByLabelText('주문자 이름')).toBeDisabled()
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
   it('서버 초기 조회 오류에서 브라우저 재시도로 복구한다', async () => {
     const user = userEvent.setup()
     render(

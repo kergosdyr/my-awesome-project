@@ -1,16 +1,11 @@
 import { StorefrontPage } from '@/features/storefront/StorefrontPage'
-import type { CatalogState } from '@/features/storefront/types'
-
-const loadingCatalog: CatalogState = {
-  status: 'loading',
-  products: [],
-  error: null,
-}
+import { loadingCatalogState } from '@/features/storefront/catalogState'
 
 export default function Loading() {
   return (
     <StorefrontPage
-      initialCatalog={loadingCatalog}
+      initialCatalog={loadingCatalogState}
+      interactionDisabled
       loadInitialCatalog={false}
     />
   )

@@ -11,11 +11,13 @@ import type { CartLine, CatalogState, OrderResult, Product } from './types'
 
 interface StorefrontPageProps {
   initialCatalog?: CatalogState
+  interactionDisabled?: boolean
   loadInitialCatalog?: boolean
 }
 
 export function StorefrontPage({
   initialCatalog,
+  interactionDisabled = false,
   loadInitialCatalog,
 }: StorefrontPageProps) {
   const { error: catalogError, products, retry, status } =
@@ -167,6 +169,7 @@ export function StorefrontPage({
           customerError={customerError}
           totalAmount={totalAmount}
           error={orderError}
+          interactionDisabled={interactionDisabled}
           submitting={submitting}
           onCustomerNameChange={(value) => {
             setCustomerName(value)

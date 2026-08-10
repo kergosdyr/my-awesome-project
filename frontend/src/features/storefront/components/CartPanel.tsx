@@ -19,6 +19,7 @@ interface CartPanelProps {
   customerError?: string
   customerName: string
   error: string | null
+  interactionDisabled?: boolean
   itemCount: number
   lines: CartLine[]
   onCustomerNameChange: (value: string) => void
@@ -41,6 +42,7 @@ export const CartPanel = forwardRef<HTMLButtonElement, CartPanelProps>(
       customerError,
       customerName,
       error,
+      interactionDisabled = false,
       itemCount,
       lines,
       onCustomerNameChange,
@@ -121,7 +123,7 @@ export const CartPanel = forwardRef<HTMLButtonElement, CartPanelProps>(
             <div className="cart-customer">
               <FieldGroup>
                 <Field
-                  data-disabled={submitting || undefined}
+                  data-disabled={interactionDisabled || submitting || undefined}
                   data-invalid={Boolean(customerError) || undefined}
                 >
                   <FieldLabel htmlFor="customer-name">주문자 이름</FieldLabel>
@@ -137,7 +139,7 @@ export const CartPanel = forwardRef<HTMLButtonElement, CartPanelProps>(
                     aria-describedby={
                       customerError ? 'customer-name-error' : undefined
                     }
-                    disabled={submitting}
+                    disabled={interactionDisabled || submitting}
                   />
                   <FieldError id="customer-name-error">{customerError}</FieldError>
                 </Field>
@@ -164,7 +166,7 @@ export const CartPanel = forwardRef<HTMLButtonElement, CartPanelProps>(
               className="cart-submit"
               type="submit"
               variant="default"
-              disabled={lines.length === 0 || submitting}
+              disabled={interactionDisabled || lines.length === 0 || submitting}
               aria-busy={submitting || undefined}
             >
               {submitting ? (

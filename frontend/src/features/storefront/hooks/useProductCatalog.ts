@@ -1,15 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { loadingCatalogState } from '../catalogState'
 import { listProducts } from '../data/storefrontApi'
 import type { CatalogState } from '../types'
 
-const loadingCatalog: CatalogState = {
-  status: 'loading',
-  products: [],
-  error: null,
-}
-
 export function useProductCatalog(
-  initialState: CatalogState = loadingCatalog,
+  initialState: CatalogState = loadingCatalogState,
   loadInitialCatalog = true,
 ) {
   const abortRef = useRef<AbortController | null>(null)
