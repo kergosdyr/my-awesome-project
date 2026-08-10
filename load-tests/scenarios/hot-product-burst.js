@@ -3,6 +3,7 @@ import { check } from 'k6';
 import {
   arrivalRateScenario,
   envInteger,
+  envString,
   outcomeThresholds,
   SUMMARY_TREND_STATS,
   urlFor,
@@ -14,6 +15,10 @@ import { summaryOutputs } from '../lib/summary.js';
 const SCENARIO = 'hot_product_burst';
 const METRIC_PREFIX = 'hot_product';
 const productId = envInteger('HOT_PRODUCT_ID', 1, 1);
+const targetPath = envString('HOT_PRODUCT_PATH', `/api/products/${productId}`).replace(
+  '{productId}',
+  String(productId),
+);
 const metrics = createOutcomeMetrics(METRIC_PREFIX);
 
 export const options = {
@@ -41,12 +46,14 @@ export const options = {
 };
 
 export function hotProductBurst() {
-  const response = getJson(urlFor(`/api/products/${productId}`), {
+  const response = getJson(urlFor(targetPath), {
     name: 'GET /api/products/:id',
     operation: 'get-hot-product',
   });
   const body = tryJson(response);
-  const product = body !== null && typeof body === 'object' && body.data !== undefined ? body.data : body;
+  const data = body !== null && typeof body === 'object' && body.data !== undefined ? body.data : body;
+  const product =
+    data !== null && typeof data === 'object' && data.product !== undefined ? data.product : data;
   const successful = check(response, {
     'hot product status is 200': (result) => result.status === 200,
     'hot product body is JSON object': () =>

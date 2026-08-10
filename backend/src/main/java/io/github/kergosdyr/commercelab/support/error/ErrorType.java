@@ -10,6 +10,8 @@ public enum ErrorType {
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 경로를 찾을 수 없습니다."),
     PRODUCT_NOT_FOR_SALE(HttpStatus.CONFLICT, "현재 구매할 수 없는 상품입니다."),
     INSUFFICIENT_STOCK(HttpStatus.CONFLICT, "상품 재고가 부족합니다."),
+    CACHE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "캐시 실험 저장소에 연결할 수 없습니다."),
+    CACHE_LOCK_TIMEOUT(HttpStatus.SERVICE_UNAVAILABLE, "캐시 갱신 잠금 대기 시간이 초과되었습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "잠시 후 다시 시도해 주세요.");
 
     private final HttpStatus status;

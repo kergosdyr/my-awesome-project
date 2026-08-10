@@ -19,3 +19,15 @@ spring:
 app:
   cors:
     allowed-origins: http://localhost:3000
+  labs:
+    cache:
+      ttl: 500ms
+      origin-delay: 0ms
+      lock-lease: 2s
+      lock-wait-timeout: 100ms
+      lock-poll-interval: 10ms
+
+management:
+  health:
+    redis:
+      enabled: false

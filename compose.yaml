@@ -20,6 +20,20 @@ services:
       retries: 20
       start_period: 20s
 
+  redis:
+    image: redis:7.4.2-alpine
+    cpus: 0.5
+    mem_limit: 256m
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
   backend:
     build:
       context: ./backend
@@ -29,11 +43,20 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-commerce_lab}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-commerce}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-commerce}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      CACHE_LAB_TTL: ${CACHE_LAB_TTL:-500ms}
+      CACHE_LAB_ORIGIN_DELAY: ${CACHE_LAB_ORIGIN_DELAY:-40ms}
+      CACHE_LAB_LOCK_LEASE: ${CACHE_LAB_LOCK_LEASE:-2s}
+      CACHE_LAB_LOCK_WAIT_TIMEOUT: ${CACHE_LAB_LOCK_WAIT_TIMEOUT:-1s}
+      CACHE_LAB_LOCK_POLL_INTERVAL: ${CACHE_LAB_LOCK_POLL_INTERVAL:-10ms}
       TZ: Asia/Seoul
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     depends_on:
       mysql:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8080/actuator/health | grep -q UP"]

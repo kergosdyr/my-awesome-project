@@ -86,6 +86,12 @@ HOT_PRODUCT_ID=1
 
 다른 접두사는 `CATALOG_READ`, `ORDER`, `WAITING_ROOM`이다. 공통 HTTP timeout은 `REQUEST_TIMEOUT`으로 바꾼다. 주문 payload는 `{customerName, lines:[{productId, quantity}]}`이며 `ORDER_PRODUCT_ID`, `ORDER_QUANTITY`, `ORDER_CUSTOMER_PREFIX`로 조정한다. 대기열은 `WAITING_ROOM_PATH`, `WAITING_ROOM_METHOD`, `WAITING_ROOM_PRODUCT_ID`, `WAITING_ROOM_QUANTITY`, 쉼표로 구분한 `WAITING_ROOM_EXPECTED_STATUSES`를 지원한다.
 
+`HOT_PRODUCT_PATH`를 지정하면 같은 hot-product 프로파일을 lab 전용 경로에도 그대로 적용할 수 있다. 캐시 스탬피드 브랜치에서는 아래 runner가 naive/protected 전략을 각각 reset하고 기본 3회 실행한 뒤 각 summary 디렉터리에 `backend-metrics.json`과 `backend-prometheus.txt`를 함께 저장한다.
+
+```bash
+bash load-tests/run-cache-stampede.sh
+```
+
 ## 전후 비교 규칙
 
 한 번에 독립 변수 하나만 바꾸고, 다음 조건을 기준선과 실험군에 동일하게 유지한다.

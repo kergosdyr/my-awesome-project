@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.github.kergosdyr.commercelab.domain.order.OrderService;
+import io.github.kergosdyr.commercelab.domain.cache.CacheExperimentService;
 import io.github.kergosdyr.commercelab.domain.product.ProductService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,7 @@ class CommerceLabApplicationTests {
     void loadsTheCommerceContextWithOsivDisabled() {
         assertThat(applicationContext.getBean(ProductService.class)).isNotNull();
         assertThat(applicationContext.getBean(OrderService.class)).isNotNull();
+        assertThat(applicationContext.getBean(CacheExperimentService.class)).isNotNull();
         assertThat(openInView).isFalse();
     }
 

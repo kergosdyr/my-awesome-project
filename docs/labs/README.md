@@ -1,5 +1,7 @@
 # Lab 운영 규칙
 
+현재 구현·측정 중인 실험은 [cache stampede](cache-stampede.md)이며 GitHub Issue [#1](https://github.com/kergosdyr/my-awesome-project/issues/1)에서 추적합니다.
+
 ## 브랜치는 실험 노트다
 
 `main`은 안정적인 비교군이고 `lab/<topic>`은 질문 하나를 검증하는 작업 공간입니다. 예정된 주제는 Issue로 관리하고 실제 구현을 시작할 때만 브랜치를 만듭니다.
