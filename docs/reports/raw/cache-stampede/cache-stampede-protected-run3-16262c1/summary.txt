@@ -1,0 +1,34 @@
+k6 load-test summary: hot-product-burst
+result label: cache-stampede-protected-run3-16262c1
+generated at: 2026-08-10T15:45:23.106Z
+
+Thresholds
+- PASS hot_product_error_rate: rate<0.01
+- PASS hot_product_success_rate: rate>0.99
+- PASS http_req_duration{scenario:hot_product_burst}: p(95)<750
+- PASS http_req_duration{scenario:hot_product_burst}: p(99)<1500
+
+Metrics
+- checks (rate): rate=1, passes=41547, fails=0
+- data_received (counter): count=7108767, rate=109363.0955
+- data_sent (counter): count=1952709, rate=30040.9763
+- hot_product_error_rate (rate): rate=0, passes=0, fails=13849
+- hot_product_success_rate (rate): rate=1, passes=13849, fails=0
+- hot_product_success_total (counter): count=13849, rate=213.0566
+- http_req_blocked (trend): count=13849, avg=0.0098, min=0.001, p(50)=0.005, p(90)=0.008, p(95)=0.01, p(99)=0.236, max=0.749
+- http_req_connecting (trend): p(50)=0, p(90)=0, p(95)=0, p(99)=0.181, max=0.604, count=13849, avg=0.0033, min=0
+- http_req_duration (trend): p(95)=24.3424, p(99)=45.5422, max=63.102, count=13849, avg=3.5778, min=0.294, p(50)=1.24, p(90)=2.5082
+- http_req_duration{expected_response:true} (trend): count=13849, avg=3.5778, min=0.294, p(50)=1.24, p(90)=2.5082, p(95)=24.3424, p(99)=45.5422, max=63.102
+- http_req_duration{scenario:hot_product_burst} (trend): avg=3.5778, min=0.294, p(50)=1.24, p(90)=2.5082, p(95)=24.3424, p(99)=45.5422, max=63.102, count=13849
+- http_req_failed (rate): rate=0, passes=0, fails=13849
+- http_req_receiving (trend): max=1.805, count=13849, avg=0.0558, min=0.005, p(50)=0.048, p(90)=0.093, p(95)=0.109, p(99)=0.1475
+- http_req_sending (trend): p(90)=0.024, p(95)=0.029, p(99)=0.043, max=0.288, count=13849, avg=0.0183, min=0.002, p(50)=0.018
+- http_req_tls_handshaking (trend): max=0, count=13849, avg=0, min=0, p(50)=0, p(90)=0, p(95)=0, p(99)=0
+- http_req_waiting (trend): min=0.259, p(50)=1.159, p(90)=2.3906, p(95)=24.2418, p(99)=45.4737, max=62.769, count=13849, avg=3.5037
+- http_reqs (counter): count=13849, rate=213.0566
+- iteration_duration (trend): max=63.628, count=13849, avg=3.8317, min=0.4265, p(50)=1.5044, p(90)=2.9772, p(95)=24.6484, p(99)=45.8138
+- iterations (counter): count=13849, rate=213.0566
+- vus (gauge): value=0, min=0, max=1
+- vus_max (gauge): value=100, min=100, max=100
+
+The JSON file next to this report is the unmodified k6 handleSummary payload.

@@ -1,5 +1,7 @@
 # my-awesome-project
 
+[![ci](https://github.com/kergosdyr/my-awesome-project/actions/workflows/ci.yml/badge.svg)](https://github.com/kergosdyr/my-awesome-project/actions/workflows/ci.yml)
+
 작은 커머스를 기반으로 동시성, 캐시, Redis, Kafka, 대기열, 관측성을 **직접 재현하고 수치로 비교하는** 공개 엔지니어링 랩입니다.
 
 완성된 쇼핑몰을 만드는 것보다 같은 상품 조회·주문 시나리오에서 기술 선택이 정합성, 성능, 장애 복구, 운영 복잡도에 어떤 차이를 만드는지 코드와 측정 결과로 설명하는 것을 목표로 합니다.
@@ -60,6 +62,15 @@ make down       # 컨테이너 중지, DB 볼륨 보존
 | 7 | `lab/flash-sale-integration` | 실험들을 하나의 플래시 세일 흐름으로 조합할 수 있는가? | 정합성, p95/p99, 오류율, 복구 시간 |
 
 절대 수치보다 **같은 조건에서 무엇이 얼마나 달라졌고 어떤 비용이 생겼는지**를 우선합니다. 실행 환경이 다른 결과는 직접적인 우열 비교에 사용하지 않습니다.
+
+### 측정 완료
+
+- [통합 부하 테스트 보고서](docs/reports/load-test-report.md) · [portable HTML](docs/reports/load-test-report.html) · [원시 결과](docs/reports/raw/)
+- [Cache stampede Draft PR #4](https://github.com/kergosdyr/my-awesome-project/pull/4): origin load `985 → 119` (-87.9%)
+- [Kafka transactional outbox Draft PR #5](https://github.com/kergosdyr/my-awesome-project/pull/5): broker 중단 중 주문 의도 보존과 멱등 복구
+- [Redis waiting-room Draft PR #6](https://github.com/kergosdyr/my-awesome-project/pull/6): 수락률 `72.736% → 100%`, max active 4, FIFO 위반 0
+
+세 lab은 `main`에 한꺼번에 합치지 않았다. 각 Draft PR이 실행 가능한 독립 실험과 측정 근거를 보존하고, [`baseline/v1`](https://github.com/kergosdyr/my-awesome-project/tree/baseline/v1)은 비교 기준선을 고정한다.
 
 ## 저장소 구조
 

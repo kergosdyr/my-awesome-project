@@ -1,0 +1,34 @@
+k6 load-test summary: kafka-outbox-direct
+result label: kafka-outbox-run1-cb400d9-direct
+generated at: 2026-08-10T15:51:11.328Z
+
+Thresholds
+- PASS event_lab_direct_error_rate: rate<0.01
+- PASS event_lab_direct_success_rate: rate>0.99
+- PASS http_req_duration{scenario:kafka_outbox_orders}: p(95)<1500
+- PASS http_req_duration{scenario:kafka_outbox_orders}: p(99)<3000
+
+Metrics
+- checks (rate): rate=1, passes=291, fails=0
+- data_received (counter): count=36949, rate=644.9548
+- data_sent (counter): count=25854, rate=451.2886
+- event_lab_direct_error_rate (rate): rate=0, passes=0, fails=97
+- event_lab_direct_success_rate (rate): rate=1, passes=97, fails=0
+- event_lab_direct_success_total (counter): count=97, rate=1.6932
+- http_req_blocked (trend): avg=0.1132, min=0.003, p(50)=0.013, p(90)=0.4982, p(95)=0.5772, p(99)=0.7406, max=0.852, count=97
+- http_req_connecting (trend): p(50)=0, p(90)=0.3614, p(95)=0.4392, p(99)=0.4968, max=0.707, count=97, avg=0.0777, min=0
+- http_req_duration (trend): count=97, avg=24.2638, min=9.576, p(50)=25.45, p(90)=29.9934, p(95)=30.6324, p(99)=34.9914, max=45.872
+- http_req_duration{expected_response:true} (trend): count=97, avg=24.2638, min=9.576, p(50)=25.45, p(90)=29.9934, p(95)=30.6324, p(99)=34.9914, max=45.872
+- http_req_duration{scenario:kafka_outbox_orders} (trend): p(90)=29.9934, p(95)=30.6324, p(99)=34.9914, max=45.872, count=97, avg=24.2638, min=9.576, p(50)=25.45
+- http_req_failed (rate): passes=0, fails=97, rate=0
+- http_req_receiving (trend): min=0.066, p(50)=0.215, p(90)=0.352, p(95)=0.4394, p(99)=0.6048, max=1.273, count=97, avg=0.2372
+- http_req_sending (trend): count=97, avg=0.0524, min=0.012, p(50)=0.05, p(90)=0.079, p(95)=0.0966, p(99)=0.1141, max=0.116
+- http_req_tls_handshaking (trend): p(50)=0, p(90)=0, p(95)=0, p(99)=0, max=0, count=97, avg=0, min=0
+- http_req_waiting (trend): max=44.571, count=97, avg=23.9743, min=9.456, p(50)=25.306, p(90)=29.8066, p(95)=30.4618, p(99)=34.6705
+- http_reqs (counter): count=97, rate=1.6932
+- iteration_duration (trend): p(90)=30.9321, p(95)=31.8037, p(99)=35.7709, max=46.8534, count=97, avg=25.0824, min=10.1512, p(50)=26.1932
+- iterations (counter): count=97, rate=1.6932
+- vus (gauge): value=0, min=0, max=1
+- vus_max (gauge): value=20, min=20, max=20
+
+The JSON file next to this report is the unmodified k6 handleSummary payload.

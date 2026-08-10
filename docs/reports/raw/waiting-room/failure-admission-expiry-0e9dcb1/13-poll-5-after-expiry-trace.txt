@@ -1,0 +1,39 @@
+02:18:46.218840 == Info: Host localhost:8080 was resolved.
+02:18:46.219043 == Info: IPv6: ::1
+02:18:46.219044 == Info: IPv4: 127.0.0.1
+02:18:46.219059 == Info:   Trying [::1]:8080...
+02:18:46.219226 == Info: Connected to localhost (::1) port 8080
+02:18:46.219241 => Send header, 143 bytes (0x8f)
+0000: GET /api/labs/waiting-room/tickets/5d5080f5-4102-4b49-bf19-a0b6b
+0040: 65638fc HTTP/1.1
+0052: Host: localhost:8080
+0068: User-Agent: curl/8.7.1
+0080: Accept: */*
+008d: 
+02:18:46.219275 == Info: Request completely sent off
+02:18:46.223711 <= Recv header, 15 bytes (0xf)
+0000: HTTP/1.1 200 
+02:18:46.223745 <= Recv header, 14 bytes (0xe)
+0000: Vary: Origin
+02:18:46.223752 <= Recv header, 37 bytes (0x25)
+0000: Vary: Access-Control-Request-Method
+02:18:46.223757 <= Recv header, 38 bytes (0x26)
+0000: Vary: Access-Control-Request-Headers
+02:18:46.223762 <= Recv header, 32 bytes (0x20)
+0000: Content-Type: application/json
+02:18:46.223778 <= Recv header, 28 bytes (0x1c)
+0000: Transfer-Encoding: chunked
+02:18:46.223781 <= Recv header, 37 bytes (0x25)
+0000: Date: Mon, 10 Aug 2026 17:18:46 GMT
+02:18:46.223785 <= Recv header, 2 bytes (0x2)
+0000: 
+02:18:46.223788 <= Recv data, 269 bytes (0x10d)
+0000: 101
+0005: {"data":{"ticketId":"5d5080f5-4102-4b49-bf19-a0b6b65638fc","stat
+0045: us":"ADMITTED","position":0,"admissionToken":"a5b463a8-856b-4b60
+0085: -ad1b-a30711de6b3a","admissionExpiresAt":"2026-08-10T17:18:56.52
+00c5: 0Z","waitDurationMillis":11037,"pollAfterMillis":0},"error":null
+0105: }
+0108: 0
+010b: 
+02:18:46.223855 == Info: Connection #0 to host localhost left intact

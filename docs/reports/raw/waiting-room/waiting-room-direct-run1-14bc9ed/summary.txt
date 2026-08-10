@@ -1,0 +1,40 @@
+k6 load-test summary: waiting-room-direct
+result label: waiting-room-direct-run1-14bc9ed
+generated at: 2026-08-10T16:06:22.968Z
+
+Thresholds
+- PASS http_req_duration{scenario:waiting_room_direct}: p(95)<1000
+- PASS http_req_duration{scenario:waiting_room_direct}: p(99)<2000
+- PASS waiting_room_error_rate: rate<0.01
+- PASS waiting_room_success_rate: rate>0.99
+
+Metrics
+- checks (rate): fails=0, rate=1, passes=15148
+- data_received (counter): count=3000973, rate=33342.4521
+- data_sent (counter): count=1475077, rate=16388.9126
+- http_req_blocked (trend): count=7953, avg=0.0455, min=0.001, p(50)=0.006, p(90)=0.233, p(95)=0.333, p(99)=0.4475, max=1.303
+- http_req_connecting (trend): p(90)=0.182, p(95)=0.255, p(99)=0.3449, max=1.233, count=7953, avg=0.031, min=0, p(50)=0
+- http_req_duration (trend): p(90)=56.3664, p(95)=59.0204, p(99)=61.6264, max=106.661, count=7953, avg=37.2678, min=0.293, p(50)=51.365
+- http_req_duration{expected_response:true} (trend): p(50)=51.86, p(90)=57.62, p(95)=59.959, p(99)=62.2909, max=106.661, count=5872, avg=50.0399, min=0.702
+- http_req_duration{scenario:waiting_room_direct} (trend): p(99)=61.6264, max=106.661, count=7953, avg=37.2678, min=0.293, p(50)=51.365, p(90)=56.3664, p(95)=59.0204
+- http_req_failed (rate): rate=0.2617, passes=2081, fails=5872
+- http_req_receiving (trend): min=0.012, p(50)=0.089, p(90)=0.213, p(95)=0.3134, p(99)=0.5519, max=13.515, count=7953, avg=0.1191
+- http_req_sending (trend): p(99)=0.08, max=0.166, count=7953, avg=0.0259, min=0.003, p(50)=0.023, p(90)=0.041, p(95)=0.056
+- http_req_tls_handshaking (trend): max=0, count=7953, avg=0, min=0, p(50)=0, p(90)=0, p(95)=0, p(99)=0
+- http_req_waiting (trend): p(95)=58.784, p(99)=61.3355, max=106.582, count=7953, avg=37.1228, min=0.239, p(50)=51.24, p(90)=56.0652
+- http_reqs (counter): count=7953, rate=88.3622
+- iteration_duration (trend): max=107.1166, count=7574, avg=39.5254, min=0.423, p(50)=51.8025, p(90)=57.317, p(95)=60.0544, p(99)=63.2861
+- iterations (counter): count=7574, rate=84.1513
+- vus (gauge): value=0, min=0, max=5
+- vus_max (gauge): value=1000, min=1000, max=1000
+- waiting_room_accepted_end_to_end_duration (trend): count=5493, avg=53.6006, min=50, p(50)=52, p(90)=58, p(95)=60, p(99)=63, max=107
+- waiting_room_accepted_total (counter): count=5493, rate=61.0302
+- waiting_room_backend_fifo_violations (gauge): value=0, min=0, max=0
+- waiting_room_backend_max_active (gauge): value=4, min=1, max=4
+- waiting_room_backend_max_queue_depth (gauge): value=0, min=0, max=0
+- waiting_room_error_rate (rate): rate=0, passes=0, fails=7574
+- waiting_room_rejected_total (counter): count=2081, rate=23.121
+- waiting_room_success_rate (rate): passes=7574, fails=0, rate=1
+- waiting_room_success_total (counter): count=7574, rate=84.1513
+
+The JSON file next to this report is the unmodified k6 handleSummary payload.
