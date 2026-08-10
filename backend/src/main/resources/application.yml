@@ -37,7 +37,7 @@ app:
       ticket-ttl: ${WAITING_ROOM_TICKET_TTL:30s}
       admission-ttl: ${WAITING_ROOM_ADMISSION_TTL:10s}
       processing-lease-ttl: ${WAITING_ROOM_PROCESSING_LEASE_TTL:5s}
-      poll-interval: ${WAITING_ROOM_POLL_INTERVAL:100ms}
+      poll-interval: ${WAITING_ROOM_POLL_INTERVAL:1s}
 
 server:
   port: ${SERVER_PORT:8080}

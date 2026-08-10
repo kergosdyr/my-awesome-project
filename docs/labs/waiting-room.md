@@ -56,7 +56,7 @@
 | `WAITING_ROOM_TICKET_TTL` | `30s` |
 | `WAITING_ROOM_ADMISSION_TTL` | `10s` |
 | `WAITING_ROOM_PROCESSING_LEASE_TTL` | `5s` |
-| `WAITING_ROOM_POLL_INTERVAL` | `100ms` |
+| `WAITING_ROOM_POLL_INTERVAL` | `1s` |
 
 Redis image는 비교 재현성을 위해 `redis:7.4.2-alpine`으로 고정한다.
 
@@ -136,5 +136,7 @@ bash load-tests/run-waiting-room-lab.sh
 이 lab의 downstream은 실제 주문·재고를 변경하지 않는 50ms 제어 작업이다. Redis release가 downstream 완료 뒤 실패하면 호출자는 503을 받더라도 작업은 이미 수행됐을 수 있으며, processing lease가 만료될 때 slot만 복구된다. 실제 주문 통합에서는 별도의 idempotency와 완료 기록이 필요하다. 또한 처리 시간이 5초 lease를 넘으면 만료 정리가 새 slot을 열 수 있으므로, 운영 구성에서는 최악 처리 시간보다 충분히 긴 lease와 갱신 전략이 필요하다.
 
 poll은 요청한 대기표만 승격하지 않고 빈 용량만큼 queue head를 함께 승격한다. 따라서 선두 사용자가 polling을 멈춰도 뒤 요청의 poll이 strict FIFO 순서로 slot을 채운다. 다만 승격된 사용자가 token을 가져가지 않으면 admission TTL 동안 slot을 점유하므로, push 알림이나 더 짧은 admission TTL은 별도 실험 대상이다.
+
+기본 polling 간격은 full profile에서 100ms가 약 5,000 HTTP requests/s로 증폭된 관찰을 반영해 1초로 둔다. client가 server의 `pollAfterMillis`를 따르면 polling 요청 상한을 대략 10분의 1로 낮출 수 있지만, 입장 상태 확인은 이전보다 최대 약 900ms 늦어지고 낮은 트래픽에서는 빈 slot 재충전도 늦어질 수 있다. 처리량, HTTP 요청 수, wait duration을 함께 비교하고 필요할 때만 환경 변수로 줄인다.
 
 측정 전 문서이므로 결과와 결론은 비워 둔다.

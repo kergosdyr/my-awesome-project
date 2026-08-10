@@ -47,6 +47,7 @@ class WaitingRoomApiTest {
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.error").value(nullValue()))
                 .andExpect(jsonPath("$.data.status").value("QUEUED"))
+                .andExpect(jsonPath("$.data.pollAfterMillis").value(1000))
                 .andReturn();
         var ticketId = objectMapper.readTree(ticketResponse.getResponse().getContentAsString())
                 .path("data").path("ticketId").asText();
@@ -55,6 +56,7 @@ class WaitingRoomApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("ADMITTED"))
                 .andExpect(jsonPath("$.data.admissionToken").isNotEmpty())
+                .andExpect(jsonPath("$.data.pollAfterMillis").value(0))
                 .andReturn();
         var admissionToken = objectMapper.readTree(pollResponse.getResponse().getContentAsString())
                 .path("data").path("admissionToken").asText();
@@ -80,6 +82,35 @@ class WaitingRoomApiTest {
                 .andExpect(jsonPath("$.data.waitingRoom.completed").value(1))
                 .andExpect(jsonPath("$.data.waitingRoom.maxActive").value(1))
                 .andExpect(jsonPath("$.data.waitingRoom.fifoViolations").value(0));
+    }
+
+    @Test
+    void returnsOneSecondPollingHintWhileATicketIsQueued() throws Exception {
+        var activeTicketResponse = mockMvc.perform(post("/api/labs/waiting-room/tickets"))
+                .andExpect(status().isAccepted())
+                .andReturn();
+        var activeTicketId = objectMapper.readTree(
+                        activeTicketResponse.getResponse().getContentAsString()
+                )
+                .path("data").path("ticketId").asText();
+        mockMvc.perform(get("/api/labs/waiting-room/tickets/{ticketId}", activeTicketId))
+                .andExpect(status().isOk());
+
+        var queuedTicketResponse = mockMvc.perform(post("/api/labs/waiting-room/tickets"))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.data.pollAfterMillis").value(1000))
+                .andReturn();
+        var queuedTicketId = objectMapper.readTree(
+                        queuedTicketResponse.getResponse().getContentAsString()
+                )
+                .path("data").path("ticketId").asText();
+        mockMvc.perform(get(
+                        "/api/labs/waiting-room/tickets/{ticketId}",
+                        queuedTicketId
+                ))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.data.status").value("QUEUED"))
+                .andExpect(jsonPath("$.data.pollAfterMillis").value(1000));
     }
 
     @Test

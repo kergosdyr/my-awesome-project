@@ -31,7 +31,7 @@ public final class WaitingRoomTestFixtures {
                     Duration.ofSeconds(30),
                     Duration.ofSeconds(10),
                     Duration.ofSeconds(5),
-                    Duration.ofMillis(10)
+                    Duration.ofSeconds(1)
             );
         }
     }
