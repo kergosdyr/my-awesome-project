@@ -1,6 +1,7 @@
 package io.github.kergosdyr.commercelab.domain.waitingroom;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.UUID;
 
 import io.github.kergosdyr.commercelab.support.error.ApiException;
@@ -63,7 +64,7 @@ public class WaitingRoomService {
                 enqueued.position(),
                 issuedAt,
                 expiresAt,
-                policy.pollInterval().toMillis()
+                calculatePollAfterMillis(enqueued.position())
         );
     }
 
@@ -89,7 +90,7 @@ public class WaitingRoomService {
                 decision.admissionExpiresAt(),
                 decision.waitDurationMillis(),
                 decision.status() == WaitingRoomRepository.PollStatus.QUEUED
-                        ? policy.pollInterval().toMillis()
+                        ? calculatePollAfterMillis(decision.position())
                         : 0
         );
     }
@@ -147,5 +148,50 @@ public class WaitingRoomService {
         waitingRoomRepository.reset();
         flashSaleClient.reset();
         return metrics();
+    }
+
+    long calculatePollAfterMillis(long queuePosition) {
+        var maxAdviceMillis = Math.max(1, millisCapped(policy.pollInterval()));
+        var workDurationMillis = millisCapped(policy.workDuration());
+        var minimumAdviceMillis = Math.max(1, workDurationMillis / 5);
+        var normalizedPosition = Math.max(queuePosition, 1);
+        var batchesAhead = (normalizedPosition - 1) / Math.max(policy.maxConcurrency(), 1);
+        var estimatedHalfWaitMillis = cappedHalfEstimate(
+                batchesAhead,
+                workDurationMillis,
+                maxAdviceMillis
+        );
+
+        return Math.min(
+                maxAdviceMillis,
+                Math.max(minimumAdviceMillis, estimatedHalfWaitMillis)
+        );
+    }
+
+    private static long millisCapped(Duration duration) {
+        try {
+            return Math.max(duration.toMillis(), 0);
+        } catch (ArithmeticException exception) {
+            return Long.MAX_VALUE;
+        }
+    }
+
+    private static long cappedHalfEstimate(long batchesAhead, long workMillis, long cap) {
+        if (batchesAhead == 0 || workMillis == 0) {
+            return 0;
+        }
+
+        var wholeBatchPairs = batchesAhead / 2;
+        if (wholeBatchPairs > cap / workMillis) {
+            return cap;
+        }
+
+        var estimate = wholeBatchPairs * workMillis;
+        if (batchesAhead % 2 == 0) {
+            return estimate;
+        }
+
+        var halfWork = workMillis / 2;
+        return halfWork >= cap - estimate ? cap : estimate + halfWork;
     }
 }

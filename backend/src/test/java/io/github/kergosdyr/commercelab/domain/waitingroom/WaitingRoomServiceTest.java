@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 
 import io.github.kergosdyr.commercelab.domain.waitingroom.WaitingRoomTestFixtures.FakeFlashSaleClient;
 import io.github.kergosdyr.commercelab.domain.waitingroom.WaitingRoomTestFixtures.FakeWaitingRoomRepository;
@@ -101,6 +102,47 @@ class WaitingRoomServiceTest {
         assertThat(fourSlotService.pollTicket(fifth.ticketId()).status()).isEqualTo("ADMITTED");
         assertThat(fourSlotService.metrics().waitingRoom().lastAdmittedSequence()).isEqualTo(5);
         assertThat(fourSlotService.metrics().waitingRoom().fifoViolations()).isZero();
+    }
+
+    @Test
+    void advisesPollingByQueuePositionAndCapsFarAndOverflowingPositions() {
+        var positionAwarePolicy = new TestPolicy(
+                4,
+                Duration.ofMillis(50),
+                Duration.ofSeconds(30),
+                Duration.ofSeconds(10),
+                Duration.ofSeconds(5),
+                Duration.ofSeconds(1)
+        );
+        var positionAwareService = new WaitingRoomService(
+                repository,
+                flashSaleClient,
+                positionAwarePolicy,
+                clock
+        );
+        var tickets = new ArrayList<WaitingRoomResult.Ticket>();
+        for (var position = 1; position <= 165; position++) {
+            tickets.add(positionAwareService.issueTicket());
+        }
+
+        assertThat(tickets.get(0).pollAfterMillis()).isEqualTo(10);
+        assertThat(tickets.get(3).pollAfterMillis()).isEqualTo(10);
+        assertThat(tickets.get(4).pollAfterMillis()).isEqualTo(25);
+        assertThat(tickets.get(160).pollAfterMillis()).isEqualTo(1000);
+        assertThat(positionAwareService.calculatePollAfterMillis(Long.MAX_VALUE)).isEqualTo(1000);
+
+        var admitted = positionAwareService.pollTicket(tickets.get(0).ticketId());
+        var newHead = positionAwareService.pollTicket(tickets.get(4).ticketId());
+        var fifthQueuedPosition = positionAwareService.pollTicket(tickets.get(8).ticketId());
+        var farQueuedPosition = positionAwareService.pollTicket(tickets.get(164).ticketId());
+
+        assertThat(admitted.pollAfterMillis()).isZero();
+        assertThat(newHead.position()).isEqualTo(1);
+        assertThat(newHead.pollAfterMillis()).isEqualTo(10);
+        assertThat(fifthQueuedPosition.position()).isEqualTo(5);
+        assertThat(fifthQueuedPosition.pollAfterMillis()).isEqualTo(25);
+        assertThat(farQueuedPosition.position()).isEqualTo(161);
+        assertThat(farQueuedPosition.pollAfterMillis()).isEqualTo(1000);
     }
 
     @Test

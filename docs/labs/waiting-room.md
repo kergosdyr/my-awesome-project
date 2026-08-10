@@ -56,7 +56,7 @@
 | `WAITING_ROOM_TICKET_TTL` | `30s` |
 | `WAITING_ROOM_ADMISSION_TTL` | `10s` |
 | `WAITING_ROOM_PROCESSING_LEASE_TTL` | `5s` |
-| `WAITING_ROOM_POLL_INTERVAL` | `1s` |
+| `WAITING_ROOM_POLL_INTERVAL` (최대 advice) | `1s` |
 
 Redis image는 비교 재현성을 위해 `redis:7.4.2-alpine`으로 고정한다.
 
@@ -137,6 +137,8 @@ bash load-tests/run-waiting-room-lab.sh
 
 poll은 요청한 대기표만 승격하지 않고 빈 용량만큼 queue head를 함께 승격한다. 따라서 선두 사용자가 polling을 멈춰도 뒤 요청의 poll이 strict FIFO 순서로 slot을 채운다. 다만 승격된 사용자가 token을 가져가지 않으면 admission TTL 동안 slot을 점유하므로, push 알림이나 더 짧은 admission TTL은 별도 실험 대상이다.
 
-기본 polling 간격은 full profile에서 100ms가 약 5,000 HTTP requests/s로 증폭된 관찰을 반영해 1초로 둔다. client가 server의 `pollAfterMillis`를 따르면 polling 요청 상한을 대략 10분의 1로 낮출 수 있지만, 입장 상태 확인은 이전보다 최대 약 900ms 늦어지고 낮은 트래픽에서는 빈 slot 재충전도 늦어질 수 있다. 처리량, HTTP 요청 수, wait duration을 함께 비교하고 필요할 때만 환경 변수로 줄인다.
+`WAITING_ROOM_POLL_INTERVAL`은 고정 주기가 아니라 최대 advice다. 응답의 `pollAfterMillis`는 `batchesAhead = floor((position - 1) / maxConcurrency)`, `floor = max(1ms, workDuration / 5)`, `estimate = batchesAhead × workDuration`, `advice = min(maxPollInterval, max(floor, estimate / 2))`로 계산한다. 기본값에서는 position 1~4가 10ms, 5~8이 25ms이고 먼 대기표는 최대 1초다. admitted 응답은 더 polling하지 않도록 0을 반환한다.
+
+이 방식은 모든 사용자의 고정 100ms polling이 만든 약 5,000 HTTP requests/s 증폭을 피하면서, 곧 승격될 queue head가 1초 동안 admission slot을 놀리는 문제를 줄인다. 대신 head 주변 요청은 1초 고정보다 많아지고 계산은 현재 position과 50ms 처리시간을 이용한 근사치이므로, 실제 wait duration과 HTTP 요청 수를 함께 측정해야 한다. client가 advice보다 자주 polling하지 않는다는 전제도 필요하다.
 
 측정 전 문서이므로 결과와 결론은 비워 둔다.
