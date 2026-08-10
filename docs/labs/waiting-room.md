@@ -139,6 +139,6 @@ poll은 요청 대기표가 현재 queue head이고 빈 slot이 있을 때만 �
 
 `WAITING_ROOM_POLL_INTERVAL`은 고정 주기가 아니라 최대 advice다. 응답의 `pollAfterMillis`는 `batchesAhead = floor((position - 1) / maxConcurrency)`, `floor = max(1ms, workDuration / 5)`, `estimate = batchesAhead × workDuration`, `advice = min(maxPollInterval, max(floor, estimate / 2))`로 계산한다. 기본값에서는 position 1~4가 10ms, 5~8이 25ms이고 먼 대기표는 최대 1초다. admitted 응답은 더 polling하지 않도록 0을 반환한다.
 
-이 방식은 모든 사용자의 고정 100ms polling이 만든 약 5,000 HTTP requests/s 증폭을 피하면서, head poll과 token 전달 사이에 admission slot이 놀지 않게 한다. 대신 head 주변 요청은 1초 고정보다 많아지고 계산은 현재 position과 50ms 처리시간을 이용한 근사치이므로, 실제 wait duration과 HTTP 요청 수를 함께 측정해야 한다. client가 advice보다 자주 polling하지 않는다는 전제도 필요하다.
+이 방식은 모든 사용자의 고정 100ms polling이 만든 약 5,000 HTTP requests/s 증폭을 피하면서, head poll과 token 전달 사이에 admission slot이 놀지 않게 한다. client는 최초 발급값을 계속 재사용하지 않고 **매 queued 응답의 최신 `pollAfterMillis`로 다음 sleep을 교체**해야 한다. 대신 head 주변 요청은 1초 고정보다 많아지고 계산은 현재 position과 50ms 처리시간을 이용한 근사치이므로, 실제 wait duration과 HTTP 요청 수를 함께 측정해야 한다. client가 advice보다 자주 polling하지 않는다는 전제도 필요하다.
 
 측정 전 문서이므로 결과와 결론은 비워 둔다.

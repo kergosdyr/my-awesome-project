@@ -125,15 +125,17 @@ function queuedPurchase() {
   queuedTotal.add(1, { mode });
 
   const deadline = Date.parse(issued.expiresAt);
+  let pollAfterMillis = Math.max(issued.pollAfterMillis || 100, 10);
   let admission = null;
   while (Date.now() < deadline) {
-    sleep(Math.max(issued.pollAfterMillis || 100, 10) / 1000);
+    sleep(pollAfterMillis / 1000);
     const pollResponse = getJson(
       urlFor(`${BASE_PATH}/tickets/${issued.ticketId}`),
       { name: 'GET waiting-room ticket', operation: 'poll-ticket', mode },
     );
     const polled = tryJson(pollResponse)?.data;
     if (pollResponse.status === 202 && polled?.status === 'QUEUED') {
+      pollAfterMillis = Math.max(polled.pollAfterMillis || pollAfterMillis, 10);
       continue;
     }
     if (pollResponse.status === 200 && polled?.status === 'ADMITTED') {
