@@ -75,6 +75,7 @@ public class WaitingRoomService {
                 ticketId,
                 now,
                 admissionExpiresAt,
+                policy.promotionReadinessTtl(),
                 policy.maxConcurrency()
         );
 
@@ -137,6 +138,7 @@ public class WaitingRoomService {
                         policy.ticketTtl().toMillis(),
                         policy.admissionTtl().toMillis(),
                         policy.processingLeaseTtl().toMillis(),
+                        policy.promotionReadinessTtl().toMillis(),
                         policy.pollInterval().toMillis()
                 ),
                 flashSaleClient.metrics(),

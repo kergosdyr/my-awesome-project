@@ -54,6 +54,7 @@ public final class WaitingRoomResult {
             long ticketTtlMillis,
             long admissionTtlMillis,
             long processingLeaseTtlMillis,
+            long promotionReadinessTtlMillis,
             long pollIntervalMillis
     ) {
     }

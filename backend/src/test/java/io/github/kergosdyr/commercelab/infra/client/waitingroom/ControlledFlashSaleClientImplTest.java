@@ -18,6 +18,7 @@ class ControlledFlashSaleClientImplTest {
                 Duration.ofSeconds(30),
                 Duration.ofSeconds(10),
                 Duration.ofSeconds(5),
+                Duration.ofMillis(100),
                 Duration.ofMillis(10)
         );
         var client = new ControlledFlashSaleClientImpl(policy);

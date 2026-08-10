@@ -1,5 +1,6 @@
 package io.github.kergosdyr.commercelab.infra.storage.redis.waitingroom;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -74,22 +75,32 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
                 redis.call('HINCRBY', KEYS[4], 'expiredAdmissions', #expiredAdmissions)
             end
 
+            if redis.call('EXISTS', KEYS[5]) == 1
+                    and redis.call('HGET', KEYS[5], 'state') == 'QUEUED' then
+                redis.call('HSET', KEYS[5], 'lastPolledAt', ARGV[2])
+            end
+
             local active = redis.call('ZCARD', KEYS[3])
-            local available = tonumber(ARGV[4]) - active
+            local available = tonumber(ARGV[5]) - active
             while available > 0 do
                 local head = redis.call('ZRANGE', KEYS[1], 0, 0)[1]
                 if not head then
                     break
                 end
 
-                local headTicketKey = ARGV[5] .. head
+                local headTicketKey = ARGV[6] .. head
                 if redis.call('EXISTS', headTicketKey) == 0 then
                     redis.call('ZREM', KEYS[1], head)
                     redis.call('ZREM', KEYS[2], head)
                     redis.call('HINCRBY', KEYS[4], 'expiredTickets', 1)
                 else
+                    local lastPolledAt = tonumber(redis.call('HGET', headTicketKey, 'lastPolledAt'))
+                    if not lastPolledAt or lastPolledAt < tonumber(ARGV[4]) then
+                        break
+                    end
+
                     local token = redis.call('HGET', headTicketKey, 'reservedAdmissionToken')
-                    local admissionKey = ARGV[6] .. token
+                    local admissionKey = ARGV[7] .. token
                     local sequence = tonumber(redis.call('HGET', headTicketKey, 'sequence'))
                     local lastSequence = tonumber(
                         redis.call('HGET', KEYS[4], 'lastAdmittedSequence') or '0'
@@ -274,6 +285,7 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
             String ticketId,
             Instant now,
             Instant admissionExpiresAt,
+            Duration promotionReadinessTtl,
             int maxConcurrency
     ) {
         var result = execute(
@@ -289,6 +301,7 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
                 ticketId,
                 epochMillis(now),
                 epochMillis(admissionExpiresAt),
+                readinessCutoffMillis(now, promotionReadinessTtl),
                 maxConcurrency,
                 TICKET_KEY_PREFIX,
                 ADMISSION_KEY_PREFIX
@@ -425,6 +438,14 @@ public class RedisWaitingRoomRepositoryImpl implements WaitingRoomRepository {
 
     private static long epochMillis(Instant instant) {
         return instant.toEpochMilli();
+    }
+
+    private static long readinessCutoffMillis(Instant now, Duration readinessTtl) {
+        try {
+            return Math.subtractExact(epochMillis(now), readinessTtl.toMillis());
+        } catch (ArithmeticException exception) {
+            return Long.MIN_VALUE;
+        }
     }
 
     private static String[] split(String value, int expectedSize) {

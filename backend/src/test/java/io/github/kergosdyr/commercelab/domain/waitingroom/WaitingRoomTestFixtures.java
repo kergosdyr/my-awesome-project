@@ -21,6 +21,7 @@ public final class WaitingRoomTestFixtures {
             Duration ticketTtl,
             Duration admissionTtl,
             Duration processingLeaseTtl,
+            Duration promotionReadinessTtl,
             Duration pollInterval
     ) implements WaitingRoomPolicy {
 
@@ -31,6 +32,7 @@ public final class WaitingRoomTestFixtures {
                     Duration.ofSeconds(30),
                     Duration.ofSeconds(10),
                     Duration.ofSeconds(5),
+                    Duration.ofMillis(100),
                     Duration.ofSeconds(1)
             );
         }
@@ -139,10 +141,20 @@ public final class WaitingRoomTestFixtures {
                 String ticketId,
                 Instant now,
                 Instant admissionExpiresAt,
+                Duration promotionReadinessTtl,
                 int maxConcurrency
         ) {
             cleanup(now);
-            promoteQueueHeads(now, admissionExpiresAt, maxConcurrency);
+            var requestedTicket = tickets.get(ticketId);
+            if (requestedTicket != null && requestedTicket.admissionToken == null) {
+                requestedTicket.lastPolledAt = now;
+            }
+            promoteReadyQueueHeads(
+                    now,
+                    admissionExpiresAt,
+                    promotionReadinessTtl,
+                    maxConcurrency
+            );
             var ticket = tickets.get(ticketId);
             if (ticket == null) {
                 return PollDecision.expired();
@@ -281,19 +293,24 @@ public final class WaitingRoomTestFixtures {
             return queued;
         }
 
-        private void promoteQueueHeads(
+        private void promoteReadyQueueHeads(
                 Instant now,
                 Instant admissionExpiresAt,
+                Duration promotionReadinessTtl,
                 int maxConcurrency
         ) {
             var availableSlots = Math.max(maxConcurrency - active.size(), 0);
-            var queueHeads = queuedTickets().entrySet().stream()
-                    .limit(availableSlots)
-                    .toList();
+            var readinessCutoff = now.minus(promotionReadinessTtl);
 
-            for (var entry : queueHeads) {
+            for (var entry : queuedTickets().entrySet()) {
+                if (availableSlots == 0) {
+                    break;
+                }
                 var ticketId = entry.getKey();
                 var ticket = entry.getValue();
+                if (ticket.lastPolledAt == null || ticket.lastPolledAt.isBefore(readinessCutoff)) {
+                    break;
+                }
                 ticket.admissionToken = ticket.reservedAdmissionToken;
                 ticket.admittedAt = now;
                 active.put(
@@ -308,6 +325,7 @@ public final class WaitingRoomTestFixtures {
                 var waited = Duration.between(ticket.issuedAt, now).toMillis();
                 totalWaitDurationMillis += waited;
                 maxWaitDurationMillis = Math.max(maxWaitDurationMillis, waited);
+                availableSlots--;
             }
             maxActive = Math.max(maxActive, active.size());
         }
@@ -319,6 +337,7 @@ public final class WaitingRoomTestFixtures {
             private final Instant expiresAt;
             private String admissionToken;
             private Instant admittedAt;
+            private Instant lastPolledAt;
             private boolean claimed;
 
             private TicketState(

@@ -19,7 +19,7 @@
 
 ## 정책과 불변식
 
-- 공정성: 대기표 발급 시 Redis `INCR` sequence와 비공개 입장 token을 함께 저장한다. 어떤 사용자의 poll이든 Lua가 빈 slot 수만큼 `ZRANGE 0 0` queue head를 하나씩 승격하므로 실제 입장 sequence는 항상 증가한다. `lastAdmittedSequence`는 마지막 승격 sequence이며 더 작은 sequence가 뒤늦게 승격될 때만 `fifoViolations`가 증가한다.
+- 공정성: 대기표 발급 시 Redis `INCR` sequence와 비공개 입장 token을 함께 저장한다. queued poll은 해당 대기표의 `lastPolledAt`을 기록하고, Lua는 최근 readiness TTL 안에 polling한 `ZRANGE 0 0` head만 빈 slot 수만큼 하나씩 승격한다. stale head에서는 중단하고 절대 건너뛰지 않으므로 실제 입장 sequence는 항상 증가한다. `lastAdmittedSequence`는 마지막 승격 sequence이며 더 작은 sequence가 뒤늦게 승격될 때만 `fifoViolations`가 증가한다.
 - 원자성: 발급, 만료 정리와 FIFO batch 승격, 입장 토큰 claim, slot release는 각각 Lua script 한 번으로 수행한다. queue·ticket·admission·active key는 모두 `{waiting-room}` Redis hash tag를 공유한다.
 - 만료: 기본 대기표 TTL은 30초, 미사용 입장 토큰은 10초, 구매를 시작한 active lease는 5초다. 요청, polling, metrics 조회 시 만료 score를 원자적으로 정리하므로 프로세스가 중단돼도 slot은 영구 점유되지 않는다.
 - 우회 방지: 구매는 같은 대기표에 발급된 일회용 token만 `READY → PROCESSING`으로 claim할 수 있다. 살아 있는 대기표에 대한 위조·중복 claim은 HTTP 403, 이미 소비됐거나 만료된 대기표·token은 HTTP 410이다.
@@ -56,6 +56,7 @@
 | `WAITING_ROOM_TICKET_TTL` | `30s` |
 | `WAITING_ROOM_ADMISSION_TTL` | `10s` |
 | `WAITING_ROOM_PROCESSING_LEASE_TTL` | `5s` |
+| `WAITING_ROOM_PROMOTION_READINESS_TTL` | `100ms` |
 | `WAITING_ROOM_POLL_INTERVAL` (최대 advice) | `1s` |
 
 Redis image는 비교 재현성을 위해 `redis:7.4.2-alpine`으로 고정한다.
@@ -135,7 +136,7 @@ bash load-tests/run-waiting-room-lab.sh
 
 이 lab의 downstream은 실제 주문·재고를 변경하지 않는 50ms 제어 작업이다. Redis release가 downstream 완료 뒤 실패하면 호출자는 503을 받더라도 작업은 이미 수행됐을 수 있으며, processing lease가 만료될 때 slot만 복구된다. 실제 주문 통합에서는 별도의 idempotency와 완료 기록이 필요하다. 또한 처리 시간이 5초 lease를 넘으면 만료 정리가 새 slot을 열 수 있으므로, 운영 구성에서는 최악 처리 시간보다 충분히 긴 lease와 갱신 전략이 필요하다.
 
-poll은 요청한 대기표만 승격하지 않고 빈 용량만큼 queue head를 함께 승격한다. 따라서 선두 사용자가 polling을 멈춰도 뒤 요청의 poll이 strict FIFO 순서로 slot을 채운다. 다만 승격된 사용자가 token을 가져가지 않으면 admission TTL 동안 slot을 점유하므로, push 알림이나 더 짧은 admission TTL은 별도 실험 대상이다.
+poll은 먼저 요청 대기표를 ready로 표시한 뒤 빈 용량만큼 연속된 ready queue head를 승격한다. 기본 100ms readiness TTL은 승격된 사용자가 실제로 polling 중이어서 token을 곧 회수할 가능성을 높이고, 1초 advice를 받은 disconnected 사용자가 admission slot을 1초 이상 놀리는 것을 막는다. 반대로 stale head는 ticket TTL 만료 전까지 뒤 사용자를 막을 수 있다. 이는 strict FIFO를 유지하기 위해 의도한 tradeoff이며, 운영형 설계에서는 heartbeat, 명시적 취소, SSE/push admission을 함께 검토해야 한다.
 
 `WAITING_ROOM_POLL_INTERVAL`은 고정 주기가 아니라 최대 advice다. 응답의 `pollAfterMillis`는 `batchesAhead = floor((position - 1) / maxConcurrency)`, `floor = max(1ms, workDuration / 5)`, `estimate = batchesAhead × workDuration`, `advice = min(maxPollInterval, max(floor, estimate / 2))`로 계산한다. 기본값에서는 position 1~4가 10ms, 5~8이 25ms이고 먼 대기표는 최대 1초다. admitted 응답은 더 polling하지 않도록 0을 반환한다.
 
