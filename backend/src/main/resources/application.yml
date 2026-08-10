@@ -18,10 +18,38 @@ spring:
         jdbc:
           time_zone: UTC
         order_updates: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:commerce-lab-order-effects-v1}
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: record
 
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+  labs:
+    kafka-outbox:
+      topic: ${KAFKA_ORDER_TOPIC:commerce-lab.order-placed.v1}
+      partitions: ${KAFKA_ORDER_TOPIC_PARTITIONS:3}
+      publish-timeout: ${KAFKA_PUBLISH_TIMEOUT:5s}
+      relay-enabled: ${KAFKA_OUTBOX_RELAY_ENABLED:true}
+      relay-delay-ms: ${KAFKA_OUTBOX_RELAY_DELAY_MS:500}
+      relay-batch-size: ${KAFKA_OUTBOX_RELAY_BATCH_SIZE:50}
+      consumer-enabled: ${KAFKA_CONSUMER_ENABLED:true}
+      topic-auto-create: ${KAFKA_TOPIC_AUTO_CREATE:true}
+      reset-enabled: ${APP_LABS_KAFKA_OUTBOX_RESET_ENABLED:false}
 
 server:
   port: ${SERVER_PORT:8080}

@@ -19,3 +19,10 @@ spring:
 app:
   cors:
     allowed-origins: http://localhost:3000
+  labs:
+    kafka-outbox:
+      topic: commerce-lab.order-placed.test
+      relay-enabled: false
+      consumer-enabled: false
+      topic-auto-create: false
+      reset-enabled: true

@@ -10,6 +10,7 @@
 | `scenarios/hot-product-burst.js` | `GET /api/products/1` | 캐시 스탬피드 전후 비교 | 20 → 250 RPS, 10초 상승 + 45초 유지 + 10초 하강 |
 | `scenarios/order-throughput.js` | `POST /api/orders` | 동기 처리와 Kafka/outbox 처리 비교 | 1 → 2 RPS, 15초 상승 + 30초 유지 + 15초 하강 |
 | `scenarios/flash-sale-admission.js` | `WAITING_ROOM_PATH` | 대기열 진입 제어 비교용 자리표시자 | 50 → 500 RPS, 15초 상승 + 1분 유지 + 15초 하강 |
+| `scenarios/kafka-outbox-orders.js` | `POST /api/labs/events/orders` | direct Kafka ack와 transactional outbox 비교 | 1 → 2 RPS, 15초 상승 + 30초 유지 + 15초 하강 |
 
 각 시나리오는 상태와 응답 형태를 `check`로 검증하고, 시나리오 전용 성공·오류 횟수와 비율을 기록한다. 기본 임계치는 오류율 1% 미만과 시나리오별 p95/p99 응답 시간이다. 대기열 시나리오의 429는 기본적으로 예상된 제어 결과이며 `admission_throttled_total`에 별도로 집계된다. HTTP 200/201은 허용, 202는 대기, 429는 제한으로 나눠 기록한다.
 
@@ -100,3 +101,5 @@ HOT_PRODUCT_ID=1
 애플리케이션 효과는 k6 지표만으로 결론 내리지 않는다. 같은 시간 창에서 CPU, heap/GC pause, DB QPS와 active connection, 쿼리 실행 횟수, cache hit/miss와 실제 loader 호출 횟수, Redis QPS, Kafka produce latency·consumer lag, outbox backlog, 대기열 허용/대기/제한 건수를 함께 기록한다. 캐시 스탬피드는 TTL 만료 직후를 재현하고 DB 조회 횟수가 요청 수에 비례하는지 확인한다. Kafka/outbox는 broker 지연·중단을 주입한 뒤 유실, 중복, backlog 회복도 검증한다. 대기열은 downstream 처리 한도를 넘는 입력에서 실제 주문 수가 재고와 허용량을 위반하지 않는지 검증한다.
 
 결과는 [`../docs/labs/_template.md`](../docs/labs/_template.md)에 옮기고 기준선/실험군의 Git commit 또는 tag와 원본 `summary.json`, `summary.txt`, `environment.txt` 경로를 링크한다. 수집하지 못한 값은 추정해서 채우지 말고 미수집 사유를 남긴다.
+
+Kafka/outbox lab은 `bash load-tests/run-kafka-outbox-lab.sh`로 실행한다. 이 runner는 두 전략에 동일한 `EVENT_LAB_*` 부하를 적용하고, 각 실행 전에 fixture를 초기화하며, outbox와 consumer가 drain될 때까지 기다린 후 `backend-metrics.json`을 저장한다. 상세 절차와 실패 주입은 [`../docs/labs/kafka-outbox.md`](../docs/labs/kafka-outbox.md)를 따른다.

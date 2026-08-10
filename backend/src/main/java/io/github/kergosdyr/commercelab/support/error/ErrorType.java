@@ -10,6 +10,8 @@ public enum ErrorType {
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 경로를 찾을 수 없습니다."),
     PRODUCT_NOT_FOR_SALE(HttpStatus.CONFLICT, "현재 구매할 수 없는 상품입니다."),
     INSUFFICIENT_STOCK(HttpStatus.CONFLICT, "상품 재고가 부족합니다."),
+    LAB_RESET_DISABLED(HttpStatus.FORBIDDEN, "로컬 lab fixture 초기화가 비활성화되어 있습니다."),
+    EVENT_PUBLISH_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "주문 이벤트 발행에 실패했습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "잠시 후 다시 시도해 주세요.");
 
     private final HttpStatus status;
