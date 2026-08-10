@@ -17,7 +17,7 @@ function getErrorMessage(error: ApiEnvelope<unknown>['error']) {
   return error?.message
 }
 
-async function readEnvelope<T>(response: Response): Promise<T> {
+export async function readEnvelope<T>(response: Response): Promise<T> {
   let payload: ApiEnvelope<T>
 
   try {

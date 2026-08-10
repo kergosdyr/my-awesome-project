@@ -1,4 +1,5 @@
-target
+.gradle
+build
 .git
 .gitignore
 .idea

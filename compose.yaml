@@ -47,8 +47,10 @@ services:
       context: ./frontend
     cpus: 0.5
     mem_limit: 256m
+    environment:
+      BACKEND_ORIGIN: ${BACKEND_ORIGIN:-http://backend:8080}
     ports:
-      - "${APP_PORT:-3000}:80"
+      - "${APP_PORT:-3000}:3000"
     depends_on:
       backend:
         condition: service_healthy

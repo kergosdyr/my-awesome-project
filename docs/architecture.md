@@ -10,27 +10,29 @@ Redis, Kafka, 대기열, 분산 락은 기준선에 미리 넣지 않습니다. 
 
 ```mermaid
 flowchart LR
-    U["브라우저"] --> F["React storefront"]
-    F -->|"/api"| B["Spring Boot API"]
+    U["브라우저"] --> F["Next.js App Router storefront"]
+    F -->|"initial products"| B["Spring Boot API"]
+    F -->|"retry / order"| R["App Router route handlers"]
+    R -->|"BACKEND_ORIGIN"| B["Spring Boot API"]
     B -->|"JPA / Flyway"| M[("MySQL 8.4")]
     K["k6"] -->|"동일 부하 프로파일"| B
 ```
 
-프론트엔드 컨테이너의 Nginx가 `/api` 요청을 백엔드로 전달합니다. 로컬 Vite 개발 서버도 같은 경로를 `localhost:8080`으로 프록시하므로 브라우저 코드의 API 계약은 환경마다 달라지지 않습니다.
+첫 상품 목록은 App Router Server Component가 서버 전용 `BACKEND_ORIGIN`에서 읽고 직렬화 가능한 초기 상태만 storefront feature에 전달합니다. 이후 브라우저의 상품 재시도와 주문은 같은 origin route handler를 거치므로 백엔드 주소를 브라우저 번들에 노출하지 않습니다. Docker Compose는 `http://backend:8080`을 주입하고, 로컬 프론트엔드 개발은 `http://localhost:8080`을 기본값으로 사용합니다.
 
 ## 프론트엔드 소유권
 
 작은 단일 화면 애플리케이션이므로 상품 탐색과 장바구니 흐름은 가장 좁은 storefront 기능 경계가 소유합니다.
 
 ```text
-route/app entry
+App Router route entry
   ↓
 storefront feature (화면, 상태, API 경계, 도메인 타입)
   ↓
-shared composites / product-neutral UI / lib
+shared composites / product-neutral shadcn/ui primitives / lib
 ```
 
-- API URL, 요청 생성, envelope 해석, transport 오류는 feature의 data 경계에 둡니다.
+- 초기 상품 조회와 브라우저용 `/api` 요청 생성, envelope 해석, transport 오류는 feature의 data 경계에 두고, 백엔드 origin과 proxy 책임은 서버 전용 lib와 route handler가 소유합니다.
 - 장바구니는 한 화면에만 필요하므로 로컬 feature 상태가 소유합니다.
 - 범용 UI는 상품, 가격, 주문 API 타입을 import하지 않습니다.
 - loading, empty, error, disabled, success 상태에서도 행과 컨트롤 크기를 안정적으로 유지합니다.
@@ -45,6 +47,8 @@ support/   공통 응답, 오류, 관측성
 ```
 
 허용 방향은 `api → domain`, `infra → domain`, `api/domain/infra → support`입니다. Controller는 facade만 호출하며 Spring Data, EntityManager, infra 구현을 알지 못합니다. Domain repository는 Spring Data 인터페이스를 상속하지 않습니다.
+
+백엔드는 Gradle Wrapper 8.14.4와 `./gradlew --no-daemon build`를 빌드 기준으로 사용합니다. 빌드 도구 전환은 위 패키지 방향과 트랜잭션 소유권을 바꾸지 않습니다.
 
 ## Query: 상품 조회
 
@@ -79,6 +83,10 @@ support/   공통 응답, 오류, 관측성
 ```
 
 HTTP shape 검증은 API 경계에, 재고와 주문 제한 같은 정책은 상태를 소유한 domain entity에 둡니다. 전역 오류 타입이 HTTP status와 공개 메시지를 결정합니다.
+
+## 기존 lab 브랜치와의 호환성
+
+Draft PR #4–#6의 lab 브랜치는 아직 이 Gradle 기준선을 반영하지 않았습니다. 기준선이 수용된 뒤 각 브랜치가 추가한 Redis/Kafka Maven 의존성을 Gradle로 옮기고 branch별 Compose 서비스를 의도적으로 조정해야 합니다. 기존 branch history와 측정 결과는 이 기반 전환에 맞춰 재작성하지 않습니다.
 
 ## 공통 측정 규약
 

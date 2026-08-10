@@ -7,7 +7,7 @@ Java 21, Spring Boot, MySQL로 만든 커머스 실험의 기준 구현입니다
 MySQL에 `commerce_lab` 데이터베이스와 `commerce` 사용자를 만든 뒤 실행합니다.
 
 ```bash
-./mvnw spring-boot:run
+./gradlew bootRun
 ```
 
 연결 정보는 환경 변수로 바꿀 수 있습니다.
@@ -16,13 +16,13 @@ MySQL에 `commerce_lab` 데이터베이스와 `commerce` 사용자를 만든 뒤
 DB_URL=jdbc:mysql://localhost:3306/commerce_lab?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
 DB_USERNAME=commerce
 DB_PASSWORD=commerce
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+CORS_ALLOWED_ORIGINS=http://localhost:3000
 ```
 
 테스트는 별도 H2 인메모리 데이터베이스에서 같은 Flyway 마이그레이션을 사용합니다.
 
 ```bash
-./mvnw verify
+./gradlew build
 ```
 
 ## API

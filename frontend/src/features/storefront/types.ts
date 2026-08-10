@@ -10,6 +10,11 @@ export interface Product {
   stockQuantity: number
 }
 
+export type CatalogState =
+  | { status: 'loading'; products: Product[]; error: null }
+  | { status: 'success'; products: Product[]; error: null }
+  | { status: 'error'; products: Product[]; error: string }
+
 export interface CartLine {
   product: Product
   quantity: number

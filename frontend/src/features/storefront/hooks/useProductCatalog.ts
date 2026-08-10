@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { listProducts } from '../data/storefrontApi'
-import type { Product } from '../types'
+import type { CatalogState } from '../types'
 
-type CatalogState =
-  | { status: 'loading'; products: Product[]; error: null }
-  | { status: 'success'; products: Product[]; error: null }
-  | { status: 'error'; products: Product[]; error: string }
+const loadingCatalog: CatalogState = {
+  status: 'loading',
+  products: [],
+  error: null,
+}
 
-export function useProductCatalog() {
+export function useProductCatalog(
+  initialState: CatalogState = loadingCatalog,
+  loadInitialCatalog = true,
+) {
   const abortRef = useRef<AbortController | null>(null)
-  const [state, setState] = useState<CatalogState>({
-    status: 'loading',
-    products: [],
-    error: null,
-  })
+  const [state, setState] = useState<CatalogState>(initialState)
 
   const load = useCallback(async () => {
     abortRef.current?.abort()
@@ -41,9 +41,15 @@ export function useProductCatalog() {
   }, [])
 
   useEffect(() => {
-    void load()
-    return () => abortRef.current?.abort()
-  }, [load])
+    if (!loadInitialCatalog || initialState.status !== 'loading') return
+
+    const loadTask = window.setTimeout(() => void load(), 0)
+
+    return () => {
+      window.clearTimeout(loadTask)
+      abortRef.current?.abort()
+    }
+  }, [initialState.status, load, loadInitialCatalog])
 
   return { ...state, retry: load }
 }

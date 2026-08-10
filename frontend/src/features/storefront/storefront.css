@@ -145,82 +145,12 @@
   gap: 9px;
 }
 
-.count-badge {
-  display: inline-flex;
-  height: 23px;
-  padding: 0 8px;
-  align-items: center;
-  color: var(--color-text-tertiary);
-  background: var(--color-control);
-  border-radius: 999px;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  font-weight: 650;
-  white-space: nowrap;
-}
-
 .catalog-search {
-  display: flex;
   width: min(100%, 280px);
-  height: 40px;
-  padding: 0 6px 0 12px;
-  align-items: center;
-  gap: 8px;
-  background: var(--color-control);
-  border: 1px solid transparent;
-  border-radius: 10px;
-  transition:
-    border-color 140ms ease,
-    box-shadow 140ms ease;
-}
-
-.catalog-search:focus-within {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgb(49 130 246 / 12%);
-}
-
-.catalog-search__label {
-  flex: 0 0 auto;
-  color: var(--color-text-tertiary);
-  font-size: 12px;
-  font-weight: 650;
-  white-space: nowrap;
-}
-
-.catalog-search input {
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-  padding: 0;
-  color: var(--color-title);
-  background: transparent;
-  border: 0;
-  outline: 0;
-  font-size: 13px;
-}
-
-.catalog-search input::placeholder {
-  color: var(--color-text-disabled);
 }
 
 .catalog-search input::-webkit-search-cancel-button {
   appearance: none;
-}
-
-.catalog-search button {
-  height: 28px;
-  padding: 0 7px;
-  color: var(--color-text-tertiary);
-  background: transparent;
-  border: 0;
-  border-radius: 7px;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.catalog-search button:hover {
-  color: var(--color-title);
-  background: var(--color-control-hover);
 }
 
 .catalog-columns,
@@ -320,34 +250,8 @@
   white-space: nowrap;
 }
 
-.stock-badge {
-  display: inline-flex;
-  min-width: 0;
-  height: 25px;
-  padding: 0 8px;
-  align-items: center;
-  justify-content: center;
+.catalog-stock-badge {
   justify-self: end;
-  border-radius: 999px;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  font-weight: 650;
-  white-space: nowrap;
-}
-
-.stock-badge--success {
-  color: var(--color-success);
-  background: var(--color-success-surface);
-}
-
-.stock-badge--warning {
-  color: var(--color-warning);
-  background: var(--color-warning-surface);
-}
-
-.stock-badge--neutral {
-  color: var(--color-text-tertiary);
-  background: var(--color-control);
 }
 
 .catalog-skeletons {
@@ -366,9 +270,6 @@
 
 .skeleton-block {
   height: 14px;
-  background: #e9ecef;
-  border-radius: 6px;
-  animation: skeleton-pulse 1.3s ease-in-out infinite alternate;
 }
 
 .skeleton-block--name {
@@ -395,11 +296,6 @@
   border-radius: 10px;
 }
 
-@keyframes skeleton-pulse {
-  from { opacity: 0.5; }
-  to { opacity: 1; }
-}
-
 .cart-panel {
   position: sticky;
   top: 88px;
@@ -423,7 +319,7 @@
   overflow-y: auto;
 }
 
-.cart-content > .ui-state {
+.cart-content > .cart-empty-state {
   min-height: 200px;
 }
 
@@ -466,23 +362,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.cart-line__remove {
-  flex: 0 0 auto;
-  height: 28px;
-  padding: 0 7px;
-  color: var(--color-text-tertiary);
-  background: transparent;
-  border: 0;
-  border-radius: 7px;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.cart-line__remove:hover {
-  color: var(--color-danger);
-  background: var(--color-danger-surface);
-}
-
 .cart-line__bottom {
   margin-top: 12px;
 }
@@ -497,32 +376,12 @@
   padding: 18px 0;
 }
 
-.cart-error {
-  display: grid;
-  padding: 12px;
-  margin-bottom: 16px;
-  color: var(--color-danger);
-  background: var(--color-danger-surface);
-  border-radius: 10px;
-  gap: 3px;
-}
-
-.cart-error strong {
-  font-size: 12px;
-}
-
-.cart-error span {
-  font-size: 11px;
-  overflow-wrap: anywhere;
-}
-
 .cart-summary {
   display: flex;
   padding: 17px 0 18px;
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  border-top: 1px solid var(--color-border);
 }
 
 .cart-summary span {
@@ -694,13 +553,13 @@
     text-align: left;
   }
 
-  .stock-badge {
+  .catalog-stock-badge {
     grid-column: 1;
     grid-row: 3;
     justify-self: start;
   }
 
-  .product-row > .ui-button {
+  .product-row > .catalog-add-button {
     grid-column: 2;
     grid-row: 2 / 4;
   }

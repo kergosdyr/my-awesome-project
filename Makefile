@@ -15,7 +15,7 @@ logs: ## 전체 서비스 로그를 따라갑니다.
 test: test-backend test-frontend ## 백엔드와 프론트엔드 검증을 모두 실행합니다.
 
 test-backend: ## 백엔드 테스트를 실행합니다.
-	cd backend && ./mvnw verify
+	cd backend && ./gradlew --no-daemon build
 
-test-frontend: ## 프론트엔드 lint, test, build를 실행합니다.
-	cd frontend && npm ci && npm run lint && npm run test -- --run && npm run build
+test-frontend: ## 프론트엔드 lint, typecheck, test, build를 실행합니다.
+	cd frontend && npm ci && npm run lint && npm run typecheck && npm run test && npm run build

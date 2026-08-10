@@ -59,6 +59,41 @@ describe('StorefrontPage', () => {
     vi.stubGlobal('fetch', vi.fn(() => responseOf(products)))
   })
 
+  it('서버에서 받은 초기 상품을 추가 브라우저 요청 없이 사용한다', () => {
+    render(
+      <StorefrontPage
+        initialCatalog={{ status: 'success', products, error: null }}
+      />,
+    )
+
+    expect(screen.getByText('실험용 키보드')).toBeVisible()
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('서버 초기 조회 오류에서 브라우저 재시도로 복구한다', async () => {
+    const user = userEvent.setup()
+    render(
+      <StorefrontPage
+        initialCatalog={{
+          status: 'error',
+          products: [],
+          error: '백엔드에 연결하지 못했습니다.',
+        }}
+      />,
+    )
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      '백엔드에 연결하지 못했습니다.',
+    )
+    await user.click(screen.getByRole('button', { name: '다시 불러오기' }))
+
+    expect(await screen.findByText('실험용 키보드')).toBeVisible()
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/products',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    )
+  })
+
   it('상품 로딩과 검색 결과 없음 상태를 안정적으로 보여준다', async () => {
     const user = userEvent.setup()
     render(<StorefrontPage />)

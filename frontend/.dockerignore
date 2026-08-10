@@ -1,6 +1,9 @@
 node_modules
-dist
+.next
+out
 coverage
 .git
 .gitignore
 *.log
+*.tsbuildinfo
+next-env.d.ts
