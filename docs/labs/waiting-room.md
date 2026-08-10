@@ -98,9 +98,18 @@ docker compose down
 
 두 실행은 같은 `WAITING_ROOM_*` 도착률, CPU/memory 제한, warm-up 조건을 사용한다. queued iteration은 대기표 TTL까지 VU를 점유할 수 있으므로 기본값은 1,000 VU를 미리 할당하고 최대 4,000 VU까지 허용한다. 부하 발생기 메모리가 부족하면 `WAITING_ROOM_PEAK_RATE`, `WAITING_ROOM_PRE_ALLOCATED_VUS`, `WAITING_ROOM_MAX_VUS`, ticket TTL을 함께 낮춘다. 각 군을 최소 3회 반복하고 `dropped_iterations`가 발생한 실행은 결과에서 제외한다.
 
+동일 조건 3회 비교와 결과 수집은 runner로 한 번에 재현할 수 있다. 시간 순서 편향을 줄이기 위해 홀수 run은 direct→queued, 짝수 run은 queued→direct로 실행한다.
+
+```bash
+export COMPOSE_PROJECT_NAME=waitinglab
+export RESULTS_DIR="$PWD/docs/reports/raw/waiting-room"
+export WAITING_ROOM_RUNS=3
+bash load-tests/run-waiting-room-lab.sh
+```
+
 ## 수집 지표
 
-- k6: `waiting_room_accepted_total`, `waiting_room_queued_total`, `waiting_room_rejected_total`, `waiting_room_wait_duration`
+- k6: `waiting_room_accepted_total`, `waiting_room_queued_total`, `waiting_room_rejected_total`, `waiting_room_wait_duration`, 성공한 구매의 `waiting_room_accepted_end_to_end_duration`
 - backend: downstream/waiting-room `maxActive`, `maxQueueDepth`, `fifoViolations`, 만료·우회 거절·완료 counters
 
 ## 결과

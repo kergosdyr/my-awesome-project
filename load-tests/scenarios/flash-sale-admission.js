@@ -21,6 +21,7 @@ const acceptedTotal = new Counter('waiting_room_accepted_total');
 const queuedTotal = new Counter('waiting_room_queued_total');
 const rejectedTotal = new Counter('waiting_room_rejected_total');
 const waitDuration = new Trend('waiting_room_wait_duration', true);
+const acceptedEndToEndDuration = new Trend('waiting_room_accepted_end_to_end_duration', true);
 const backendMaxActive = new Gauge('waiting_room_backend_max_active');
 const backendMaxQueueDepth = new Gauge('waiting_room_backend_max_queue_depth');
 const backendFifoViolations = new Gauge('waiting_room_backend_fifo_violations');
@@ -78,6 +79,7 @@ function sampleBackendMetrics() {
 }
 
 function directPurchase() {
+  const startedAt = Date.now();
   const response = postJson(
     urlFor(`${BASE_PATH}/direct`),
     {},
@@ -86,7 +88,10 @@ function directPurchase() {
   const accepted = response.status === 200;
   const rejected = response.status === 429;
 
-  if (accepted) acceptedTotal.add(1, { mode });
+  if (accepted) {
+    acceptedTotal.add(1, { mode });
+    acceptedEndToEndDuration.add(Date.now() - startedAt, { mode });
+  }
   if (rejected) rejectedTotal.add(1, { mode });
 
   const expected = check(response, {
@@ -150,6 +155,7 @@ function queuedPurchase() {
   const accepted = purchaseResponse.status === 200;
   if (accepted) {
     acceptedTotal.add(1, { mode });
+    acceptedEndToEndDuration.add(Date.now() - startedAt, { mode });
   } else {
     rejectedTotal.add(1, { mode, stage: 'purchase' });
   }
