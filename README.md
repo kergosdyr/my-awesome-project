@@ -9,7 +9,7 @@
 ## 현재 기준선
 
 - Next.js App Router + TypeScript + shadcn/ui 기반 상품 탐색·장바구니·주문 UI
-- Spring Boot + Java 21 + Gradle Wrapper 8.14.4 기반 상품 조회 Query와 주문 생성 Command
+- Spring Boot 4.1.0 + Java 21 + Gradle Wrapper 8.14.4 기반 상품 조회 Query와 주문 생성 Command
 - MySQL, JPA, Flyway를 사용한 영속성 기준선
 - Docker Compose 한 번으로 실행되는 FE–BE–DB 구성
 - k6 공통 시나리오와 동일 조건 전후 비교 규약
