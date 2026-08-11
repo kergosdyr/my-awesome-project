@@ -8,8 +8,8 @@
 
 ## 현재 기준선
 
-- React + TypeScript 기반 상품 탐색·장바구니·주문 UI
-- Spring Boot + Java 21 기반 상품 조회 Query와 주문 생성 Command
+- Next.js App Router + TypeScript + shadcn/ui 기반 상품 탐색·장바구니·주문 UI
+- Spring Boot 4.1.0 + Java 21 + Gradle Wrapper 8.14.4 기반 상품 조회 Query와 주문 생성 Command
 - MySQL, JPA, Flyway를 사용한 영속성 기준선
 - Docker Compose 한 번으로 실행되는 FE–BE–DB 구성
 - k6 공통 시나리오와 동일 조건 전후 비교 규약
@@ -28,6 +28,8 @@ make up
 ```
 
 브라우저에서 <http://localhost:3000>을 엽니다. 백엔드 API는 <http://localhost:8080>에서 실행됩니다.
+
+첫 상품 목록은 App Router Server Component가 서버 전용 `BACKEND_ORIGIN`에서 읽어 초기 화면에 전달합니다. 이후 브라우저의 상품 재시도와 주문 요청은 같은 origin의 `GET /api/products`와 `POST /api/orders`를 사용하고, route handler가 같은 백엔드 주소로 전달합니다. Docker Compose에서는 `http://backend:8080`, 로컬 프론트엔드 개발에서는 기본값 `http://localhost:8080`을 사용합니다.
 
 ```bash
 make logs       # 전체 로그
@@ -72,11 +74,13 @@ make down       # 컨테이너 중지, DB 볼륨 보존
 
 세 lab은 `main`에 한꺼번에 합치지 않았다. 각 Draft PR이 실행 가능한 독립 실험과 측정 근거를 보존하고, [`baseline/v1`](https://github.com/kergosdyr/my-awesome-project/tree/baseline/v1)은 비교 기준선을 고정한다.
 
+Draft PR #4–#6의 lab 브랜치는 아직 Gradle 기준선으로 옮기지 않았다. 이 기준선이 수용된 뒤 각 브랜치의 Maven 의존성을 Gradle로 번역하고 Redis/Kafka Compose 차이를 의도적으로 조정해야 하며, 기존 브랜치 이력과 측정 근거는 재작성하지 않는다.
+
 ## 저장소 구조
 
 ```text
-frontend/       React UI와 프론트엔드 데이터 경계
-backend/        Spring Boot API, 도메인, MySQL 인프라
+frontend/       Next.js App Router UI와 프론트엔드 데이터 경계
+backend/        Gradle 기반 Spring Boot API, 도메인, MySQL 인프라
 load-tests/     공통 k6 시나리오와 원시 측정 결과 규약
 docs/           기준선 아키텍처, 실험 템플릿, 검증 보고서
 compose.yaml    로컬 전체 스택

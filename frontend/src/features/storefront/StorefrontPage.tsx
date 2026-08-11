@@ -1,14 +1,27 @@
+'use client'
+
 import { useMemo, useRef, useState, type FormEvent } from 'react'
+import { Badge } from '@/components/ui/badge'
 import { createOrder } from './data/storefrontApi'
 import { CartPanel } from './components/CartPanel'
 import { OrderSuccessDialog } from './components/OrderSuccessDialog'
 import { ProductCatalog } from './components/ProductCatalog'
 import { useProductCatalog } from './hooks/useProductCatalog'
-import type { CartLine, OrderResult, Product } from './types'
-import './storefront.css'
+import type { CartLine, CatalogState, OrderResult, Product } from './types'
 
-export function StorefrontPage() {
-  const { error: catalogError, products, retry, status } = useProductCatalog()
+interface StorefrontPageProps {
+  initialCatalog?: CatalogState
+  interactionDisabled?: boolean
+  loadInitialCatalog?: boolean
+}
+
+export function StorefrontPage({
+  initialCatalog,
+  interactionDisabled = false,
+  loadInitialCatalog,
+}: StorefrontPageProps) {
+  const { error: catalogError, products, retry, status } =
+    useProductCatalog(initialCatalog, loadInitialCatalog)
   const [query, setQuery] = useState('')
   const [cartLines, setCartLines] = useState<CartLine[]>([])
   const [customerName, setCustomerName] = useState('')
@@ -127,7 +140,9 @@ export function StorefrontPage() {
             <a href="#catalog">상품</a>
             <a ref={cartShortcutRef} href="#cart">
               장바구니
-              <span aria-label={`${itemCount}개`}>{itemCount}</span>
+              <Badge variant="secondary" aria-label={`${itemCount}개`}>
+                {itemCount}
+              </Badge>
             </a>
           </nav>
         </div>
@@ -154,6 +169,7 @@ export function StorefrontPage() {
           customerError={customerError}
           totalAmount={totalAmount}
           error={orderError}
+          interactionDisabled={interactionDisabled}
           submitting={submitting}
           onCustomerNameChange={(value) => {
             setCustomerName(value)

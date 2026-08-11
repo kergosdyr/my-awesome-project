@@ -1,15 +1,35 @@
-FROM node:22-alpine AS build
+FROM node:22-alpine AS base
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+FROM base AS dependencies
 
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
+FROM base AS build
+
+WORKDIR /app
+COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-FROM nginx:1.27-alpine
+FROM base AS runtime
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /app
+ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
 
-EXPOSE 80
+RUN addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nextjs
+
+COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]

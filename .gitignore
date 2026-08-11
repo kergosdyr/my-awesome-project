@@ -4,15 +4,16 @@
 .env
 .worktrees/
 
-backend/target/
+backend/.gradle/
+backend/build/
 backend/.classpath
 backend/.project
 backend/.settings/
 
 frontend/node_modules/
-frontend/dist/
+frontend/.next/
 frontend/coverage/
-frontend/.vite/
+frontend/out/
 
 *.log
 *.pid
