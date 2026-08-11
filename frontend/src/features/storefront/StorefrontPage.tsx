@@ -1,13 +1,13 @@
 'use client'
 
-import { useMemo, useRef, useState, type FormEvent } from 'react'
-import { Badge } from '@/components/ui/badge'
-import { createOrder } from './data/storefrontApi'
-import { CartPanel } from './components/CartPanel'
-import { OrderSuccessDialog } from './components/OrderSuccessDialog'
+import { ArrowDown, ArrowRight } from '@phosphor-icons/react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useMemo, useState } from 'react'
 import { ProductCatalog } from './components/ProductCatalog'
 import { useProductCatalog } from './hooks/useProductCatalog'
-import type { CartLine, CatalogState, OrderResult, Product } from './types'
+import { useShopCart } from './ShopCartContext'
+import type { CatalogState, Product } from './types'
 
 interface StorefrontPageProps {
   initialCatalog?: CatalogState
@@ -15,179 +15,169 @@ interface StorefrontPageProps {
   loadInitialCatalog?: boolean
 }
 
+const categories = [
+  { id: 'ALL', label: 'All objects' },
+  { id: 'DRINK', label: 'Drink' },
+  { id: 'DESK', label: 'Desk' },
+  { id: 'CARRY', label: 'Carry' },
+] as const
+
+type CategoryId = (typeof categories)[number]['id']
+
+function belongsToCategory(product: Product, category: CategoryId) {
+  if (category === 'ALL') return true
+  const family = product.sku.split('-')[0]
+  if (category === 'DRINK') return ['BEAN', 'TEA', 'LIFE'].includes(family)
+  if (category === 'DESK') return ['DESK', 'KEYBOARD'].includes(family)
+  return family === 'BAG'
+}
+
+const currencyFormatter = new Intl.NumberFormat('ko-KR', {
+  style: 'currency',
+  currency: 'KRW',
+  maximumFractionDigits: 0,
+})
+
 export function StorefrontPage({
   initialCatalog,
   interactionDisabled = false,
   loadInitialCatalog,
 }: StorefrontPageProps) {
-  const { error: catalogError, products, retry, status } =
-    useProductCatalog(initialCatalog, loadInitialCatalog)
+  const { error, products, retry, status } = useProductCatalog(
+    initialCatalog,
+    loadInitialCatalog,
+  )
+  const { addProduct, cartLines, itemCount, totalAmount } = useShopCart()
   const [query, setQuery] = useState('')
-  const [cartLines, setCartLines] = useState<CartLine[]>([])
-  const [customerName, setCustomerName] = useState('')
-  const [validationAttempted, setValidationAttempted] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [orderError, setOrderError] = useState<string | null>(null)
-  const [completedOrder, setCompletedOrder] = useState<OrderResult | null>(null)
-  const searchInputRef = useRef<HTMLInputElement>(null)
-  const submitButtonRef = useRef<HTMLButtonElement>(null)
-  const cartShortcutRef = useRef<HTMLAnchorElement>(null)
+  const [category, setCategory] = useState<CategoryId>('ALL')
+  const [visibleCount, setVisibleCount] = useState(8)
 
   const visibleProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase('ko-KR')
-    if (!normalizedQuery) return products
-
-    return products.filter((product) =>
-      [product.name, product.description, product.sku].some((field) =>
+    return products.filter((product) => {
+      if (!belongsToCategory(product, category)) return false
+      if (!normalizedQuery) return true
+      return [product.name, product.description, product.sku].some((field) =>
         field.toLocaleLowerCase('ko-KR').includes(normalizedQuery),
-      ),
-    )
-  }, [products, query])
+      )
+    })
+  }, [category, products, query])
 
   const cartQuantities = useMemo(
     () => new Map(cartLines.map((line) => [line.product.id, line.quantity])),
     [cartLines],
   )
-  const itemCount = cartLines.reduce((sum, line) => sum + line.quantity, 0)
-  const totalAmount = cartLines.reduce(
-    (sum, line) => sum + line.product.price * line.quantity,
-    0,
-  )
-  const customerError =
-    validationAttempted && !customerName.trim()
-      ? '주문자 이름을 입력해 주세요.'
-      : undefined
 
-  const addProduct = (product: Product) => {
-    setOrderError(null)
-    setCartLines((current) => {
-      const existing = current.find((line) => line.product.id === product.id)
-
-      if (!existing) return [...current, { product, quantity: 1 }]
-      if (existing.quantity >= product.stockQuantity) return current
-
-      return current.map((line) =>
-        line.product.id === product.id
-          ? { ...line, quantity: line.quantity + 1 }
-          : line,
-      )
-    })
+  const changeQuery = (value: string) => {
+    setQuery(value)
+    setVisibleCount(8)
   }
 
-  const updateQuantity = (productId: number, quantity: number) => {
-    setOrderError(null)
-    setCartLines((current) =>
-      current.map((line) =>
-        line.product.id === productId
-          ? {
-              ...line,
-              quantity: Math.max(1, Math.min(quantity, line.product.stockQuantity)),
-            }
-          : line,
-      ),
-    )
-  }
-
-  const removeProduct = (productId: number) => {
-    setOrderError(null)
-    setCartLines((current) =>
-      current.filter((line) => line.product.id !== productId),
-    )
-  }
-
-  const submitOrder = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setValidationAttempted(true)
-    setOrderError(null)
-
-    const trimmedCustomerName = customerName.trim()
-    if (!trimmedCustomerName || cartLines.length === 0 || submitting) return
-
-    setSubmitting(true)
-    try {
-      const order = await createOrder({
-        customerName: trimmedCustomerName,
-        lines: cartLines.map((line) => ({
-          productId: line.product.id,
-          quantity: line.quantity,
-        })),
-      })
-      setCompletedOrder(order)
-      setCartLines([])
-      setCustomerName('')
-      setValidationAttempted(false)
-    } catch (error) {
-      setOrderError(
-        error instanceof Error ? error.message : '주문을 처리하지 못했습니다.',
-      )
-    } finally {
-      setSubmitting(false)
-    }
+  const changeCategory = (value: CategoryId) => {
+    setCategory(value)
+    setVisibleCount(8)
   }
 
   return (
-    <div className="storefront-shell">
-      <header className="app-header">
-        <div className="app-header__inner">
-          <a className="brand" href="#catalog" aria-label="커머스 실험실 상품 카탈로그로 이동">
-            <span className="brand__mark" aria-hidden="true">K</span>
-            <span className="brand__copy">
-              <strong>커머스 실험실</strong>
-              <small>작은 주문, 깊은 실험</small>
-            </span>
-          </a>
-          <nav className="quick-nav" aria-label="빠른 이동">
-            <a href="#catalog">상품</a>
-            <a ref={cartShortcutRef} href="#cart">
-              장바구니
-              <Badge variant="secondary" aria-label={`${itemCount}개`}>
-                {itemCount}
-              </Badge>
-            </a>
-          </nav>
+    <main className="demo-shop-main">
+      <section className="demo-shop-hero" aria-labelledby="demo-shop-title">
+        <div className="demo-shop-hero__copy">
+          <span className="demo-shop-kicker">A fake store for real flows</span>
+          <h1 id="demo-shop-title">
+            USEFUL THINGS
+            <br />
+            FOR MADE-UP DAYS.
+          </h1>
+          <p>
+            커피부터 책상 위 도구까지. 결제되지 않지만 탐색하고 고르고 주문하는
+            흐름은 실제처럼 경험할 수 있습니다.
+          </p>
+          <Link className="demo-shop-primary-link" href="#catalog">
+            컬렉션 보기 <ArrowDown aria-hidden="true" />
+          </Link>
         </div>
-      </header>
+        <div className="demo-shop-hero__visual">
+          <Image
+            src="/images/shop-hero-keyboard.webp"
+            alt="데모 샵의 로우 프로파일 키보드 컬렉션"
+            fill
+            fetchPriority="high"
+            loading="eager"
+            sizes="(max-width: 800px) 100vw, 46vw"
+          />
+          <span>OBJECT 005 / DESK</span>
+        </div>
+      </section>
 
-      <main className="storefront-layout">
+      <div className="demo-shop-marquee" aria-hidden="true">
+        <span>NO PAYMENT</span>
+        <span>REAL INTERACTIONS</span>
+        <span>DEMO DELIVERY</span>
+        <span>SEOUL / 2026</span>
+      </div>
+
+      <section className="demo-catalog" id="catalog" aria-labelledby="catalog-title">
+        <header className="demo-catalog__header">
+          <div>
+            <span className="demo-shop-kicker">Season 01 / Everyday systems</span>
+            <h2 id="catalog-title">THE CATALOG</h2>
+          </div>
+          <p>{products.length.toString().padStart(2, '0')} curated objects</p>
+        </header>
+
+        <div className="demo-catalog__controls">
+          <div className="demo-category-tabs" role="group" aria-label="상품 카테고리">
+            {categories.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                aria-pressed={category === item.id}
+                onClick={() => changeCategory(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <label className="demo-catalog-search">
+            <span>Search</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => changeQuery(event.target.value)}
+              placeholder="상품 이름 또는 키워드"
+              disabled={interactionDisabled || status !== 'success'}
+            />
+          </label>
+        </div>
+
         <ProductCatalog
-          ref={searchInputRef}
           status={status}
-          error={catalogError}
+          error={error}
           products={visibleProducts}
-          totalProductCount={products.length}
-          query={query}
+          visibleCount={visibleCount}
           cartQuantities={cartQuantities}
-          onSearchChange={setQuery}
-          onRetry={() => void retry()}
           onAdd={addProduct}
+          onLoadMore={() =>
+            setVisibleCount((current) =>
+              Math.min(current + 6, visibleProducts.length),
+            )
+          }
+          onRetry={() => void retry()}
+          onClearSearch={() => changeQuery('')}
         />
-        <CartPanel
-          ref={submitButtonRef}
-          lines={cartLines}
-          itemCount={itemCount}
-          customerName={customerName}
-          customerError={customerError}
-          totalAmount={totalAmount}
-          error={orderError}
-          interactionDisabled={interactionDisabled}
-          submitting={submitting}
-          onCustomerNameChange={(value) => {
-            setCustomerName(value)
-            setOrderError(null)
-          }}
-          onUpdateQuantity={updateQuantity}
-          onRemove={removeProduct}
-          onSubmit={submitOrder}
-        />
-      </main>
+      </section>
 
-      {completedOrder && (
-        <OrderSuccessDialog
-          order={completedOrder}
-          onClose={() => setCompletedOrder(null)}
-          returnFocusRef={cartShortcutRef}
-        />
+      {itemCount > 0 && (
+        <aside className="demo-floating-cart" aria-label="장바구니 요약">
+          <div>
+            <span>{itemCount} items</span>
+            <strong>{currencyFormatter.format(totalAmount)}</strong>
+          </div>
+          <Link href="/shop/checkout">
+            주문서로 이동 <ArrowRight aria-hidden="true" />
+          </Link>
+        </aside>
       )}
-    </div>
+    </main>
   )
 }

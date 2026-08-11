@@ -1,6 +1,7 @@
 import 'server-only'
 import { backendUrl } from '@/lib/backend-url'
 import { readEnvelope } from './storefrontApi'
+import { demoProducts, withExtendedDemoCatalog } from './demoStorefront'
 import type { CatalogState, Product } from '../types'
 
 export async function loadInitialProductCatalog(): Promise<CatalogState> {
@@ -13,16 +14,23 @@ export async function loadInitialProductCatalog(): Promise<CatalogState> {
     })
   } catch {
     return {
-      status: 'error',
-      products: [],
-      error: '백엔드에 연결하지 못했습니다.',
+      status: 'success',
+      products: demoProducts,
+      error: null,
     }
   }
 
   try {
     const products = await readEnvelope<Product[]>(response)
-    return { status: 'success', products, error: null }
+    return {
+      status: 'success',
+      products: withExtendedDemoCatalog(products),
+      error: null,
+    }
   } catch (error) {
+    if (error instanceof TypeError) {
+      return { status: 'success', products: demoProducts, error: null }
+    }
     return {
       status: 'error',
       products: [],

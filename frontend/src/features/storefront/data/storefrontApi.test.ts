@@ -19,7 +19,7 @@ describe('storefrontApi', () => {
     )
 
     await expect(listProducts()).rejects.toEqual(
-      new ApiRequestError('상품 조회 실패'),
+      new ApiRequestError('상품 조회 실패', 'PRODUCTS_UNAVAILABLE'),
     )
   })
 })

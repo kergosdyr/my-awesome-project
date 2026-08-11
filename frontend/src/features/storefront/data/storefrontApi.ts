@@ -4,9 +4,10 @@ import type {
   OrderResult,
   Product,
 } from '../types'
+import { createDemoOrder, withExtendedDemoCatalog } from './demoStorefront'
 
 export class ApiRequestError extends Error {
-  constructor(message: string) {
+  constructor(message: string, readonly code?: string) {
     super(message)
     this.name = 'ApiRequestError'
   }
@@ -28,7 +29,11 @@ export async function readEnvelope<T>(response: Response): Promise<T> {
 
   const errorMessage = getErrorMessage(payload.error)
   if (!response.ok || errorMessage) {
-    throw new ApiRequestError(errorMessage ?? '요청을 처리하지 못했습니다.')
+    const code =
+      typeof payload.error === 'object' && payload.error
+        ? payload.error.code
+        : undefined
+    throw new ApiRequestError(errorMessage ?? '요청을 처리하지 못했습니다.', code)
   }
 
   if (payload.data == null) {
@@ -44,18 +49,34 @@ export async function listProducts(signal?: AbortSignal) {
     signal,
   })
 
-  return readEnvelope<Product[]>(response)
+  return withExtendedDemoCatalog(await readEnvelope<Product[]>(response))
 }
 
 export async function createOrder(request: CreateOrderRequest) {
-  const response = await fetch('/api/orders', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(request),
-  })
+  if (request.lines.some((line) => line.productId >= 100)) {
+    await new Promise((resolve) => window.setTimeout(resolve, 650))
+    return createDemoOrder(request)
+  }
 
-  return readEnvelope<OrderResult>(response)
+  try {
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    })
+
+    return await readEnvelope<OrderResult>(response)
+  } catch (error) {
+    if (
+      error instanceof TypeError ||
+      (error instanceof ApiRequestError && error.code === 'BACKEND_UNAVAILABLE')
+    ) {
+      await new Promise((resolve) => window.setTimeout(resolve, 450))
+      return createDemoOrder(request)
+    }
+    throw error
+  }
 }

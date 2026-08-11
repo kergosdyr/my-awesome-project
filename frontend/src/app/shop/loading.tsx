@@ -1,7 +1,7 @@
 import { StorefrontPage } from '@/features/storefront/StorefrontPage'
 import { loadingCatalogState } from '@/features/storefront/catalogState'
 
-export default function Loading() {
+export default function ShopLoading() {
   return (
     <StorefrontPage
       initialCatalog={loadingCatalogState}
