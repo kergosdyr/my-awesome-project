@@ -5,6 +5,7 @@
 | 주제 | 주제 노트 |
 | --- | --- |
 | AI를 회상 튜터로 사용하는 학습 루프 | [topic](topics/ai-retrieval-tutor.md) |
+| Shopify 재고 예약: Redis에서 MySQL로 | [topic](topics/shopify-inventory-redis-to-mysql.md) |
 
 ## 결과 표기
 
