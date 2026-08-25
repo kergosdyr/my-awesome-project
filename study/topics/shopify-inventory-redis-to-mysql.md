@@ -7,6 +7,8 @@ last_reviewed: 2026-08-25
 next_review: 2026-08-26
 interval_days: 1
 review_count: 0
+review_level: covered_material
+review_batch_size: 4
 blog_seed: maybe
 tags: [inventory, reservation, redis, mysql, concurrency, skip-locked]
 sources:
@@ -21,6 +23,49 @@ sessions:
 ## 현재 상태
 
 첫 회상 뒤 Shopify Engineering 원문을 찾아 일부 내용을 대조했다. Sorted Set, Lua, 10초 cron은 원문에 없으므로 영상 링크를 받기 전까지 미확인으로 남긴다.
+
+## 이해 지도
+
+### 알고 있는 것
+
+- `reserve`는 결제 중 재고를 잠시 잡는 것이고 `claim`은 결제 성공 뒤 MySQL inventory ledger의 실제 재고를 영구 차감하는 것이다.
+- 기존 Redis 자체의 동시성 성능은 문제가 아니었다. Redis 예약과 MySQL 원장을 하나의 ACID 트랜잭션으로 묶기 어려운 것이 MySQL 중심 전환의 핵심 이유였다.
+- 만료된 Redis 예약의 회수가 늦으면 실제 재고가 있는데 품절로 보이는 거짓 품절이 생길 수 있다.
+- Redis에서 조회와 갱신을 분리하면 check-then-act 경쟁이 생기며 Lua로 원자화할 수 있다.
+- 단일 MySQL 카운터의 조건부 쓰기는 음수 재고를 막지만 같은 행에 hot-row 경합을 만든다.
+- 여러 sellable-unit 행과 `FOR UPDATE SKIP LOCKED`를 사용하면 동시 요청이 서로 다른 행을 예약할 수 있다.
+- item/location별 최대 1,000행 bounded pool은 전체 재고가 아니라 예약 처리용 작업 풀이며, 비면 한 요청만 보충하고 다른 요청은 재확인한다.
+
+### 헷갈리거나 원문 확인이 필요한 것
+
+- 영상에서 설명한 Sorted Set, Lua, 10초 cleanup의 정확한 구현과 실행 시점
+- Redis 숫자가 모든 순간에 판매 가능 재고와 정확히 일치하는지, cleanup 지연을 허용한 보수적 값인지
+- Shopify가 replenishment를 하나로 직렬화할 때 실제로 사용한 guard lock의 대상
+- 예약 만료 시 unit row를 직접 반환하는지, 별도 replenishment로 다시 만드는지
+
+### 오늘 다뤘지만 아직 약한 것
+
+- MySQL next-key, gap, supremum lock의 세부 동작
+- MySQL·PostgreSQL·Oracle 격리 수준 구현 비교
+- InnoDB secondary entry와 clustered record의 물리 잠금 경로
+- Composite primary key가 잠금 수, index 크기, 쓰기 비용에 미치는 영향
+
+## 다음 복습 질문 묶음
+
+### A. 핵심 흐름
+
+1. Shopify가 Redis의 성능 문제가 아니라 Redis 예약과 MySQL 원장의 경계 때문에 MySQL 중심 구조로 옮긴 이유를 `reserve`와 `claim`으로 설명해보자.
+2. 만료된 예약이 늦게 회수되면 왜 초과 판매보다 거짓 품절이 생기는가?
+3. 단일 카운터의 조건부 `UPDATE`와 여러 unit row의 `SKIP LOCKED`는 각각 정확성과 경합을 어떻게 다르게 해결하는가?
+4. bounded pool을 최대 1,000행으로 제한하는 이유와, 빈 pool을 여러 요청이 동시에 보충하지 못하게 해야 하는 이유는 무엇인가?
+
+### B. 오늘 다룬 내부 동작
+
+5. `READ COMMITTED`와 `REPEATABLE READ`는 같은 트랜잭션의 두 번째 조회에서 새로 커밋된 행을 보는 방식이 어떻게 다른가? Phantom은 항상 오류인가?
+6. MySQL RR에서 빈 pool의 `FOR UPDATE SKIP LOCKED`가 replenishment INSERT를 방해할 수 있는 이유와, Shopify가 해당 트랜잭션을 RC로 바꾼 이유는 무엇인가?
+7. InnoDB secondary index entry에 PK 값이 포함되는 이유와, Shopify의 composite PK가 예약당 관찰된 잠금 수를 줄인 이유를 아는 범위에서 설명해보자.
+
+질문 5~7은 오늘 설명한 수준까지만 확인한다. 답이 막히면 현재 이해도를 기록하고 새로운 gap-lock 또는 B-tree 세부 질문으로 확장하지 않는다.
 
 ## 회상에서 복원한 흐름
 

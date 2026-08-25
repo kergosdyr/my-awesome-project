@@ -7,6 +7,8 @@ last_reviewed: null
 next_review: YYYY-MM-DD
 interval_days: 1
 review_count: 0
+review_level: covered_material
+review_batch_size: 4
 blog_seed: hold
 tags: []
 sources: []
@@ -16,6 +18,35 @@ sources: []
 
 ## 현재의 한 문장 설명
 
+
+## 이해 지도
+
+### 알고 있는 것
+
+-
+
+### 헷갈리는 것
+
+-
+
+### 오늘 다뤘지만 아직 약한 것
+
+-
+
+## 다음 복습 질문 묶음
+
+### 핵심
+
+1.
+2.
+3.
+4.
+
+### 오늘 다룬 심화
+
+5.
+6.
+7.
 
 ## 의사결정 모델
 
