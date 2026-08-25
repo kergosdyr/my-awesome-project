@@ -48,7 +48,7 @@ make down       # 컨테이너 중지, DB 볼륨 보존
 5. Draft PR에 설계, 실패 사례, 원시 결과, 결론을 축적합니다.
 6. 공통 기반만 `main`에 반영하고 실험 구현은 태그로 동결할 수 있습니다.
 
-빈 브랜치를 미리 만들지 않는 이유는 시간이 지나면 기준선과 자동으로 벌어지고, 의존성·보안 업데이트와 충돌 관리만 중복되기 때문입니다. 예정된 공부는 아래 로드맵과 Issue가 더 정확하게 표현합니다.
+빈 브랜치를 미리 만들지 않는 이유는 시간이 지나면 기준선과 자동으로 벌어지고, 의존성·보안 업데이트와 충돌 관리만 중복되기 때문입니다. 예정된 구현 실험은 아래 로드맵과 Issue로 관리하고, 일상적인 학습 회상과 간격 복습은 `study/`에 기록합니다.
 
 ## Labs & Roadmap
 
@@ -83,12 +83,14 @@ frontend/       Next.js App Router UI와 프론트엔드 데이터 경계
 backend/        Gradle 기반 Spring Boot API, 도메인, MySQL 인프라
 load-tests/     공통 k6 시나리오와 원시 측정 결과 규약
 docs/           기준선 아키텍처, 실험 템플릿, 검증 보고서
+study/          날짜별 학습 회상, 주제 노트, 간격 복습 기록
 compose.yaml    로컬 전체 스택
 ```
 
 - [기준선 아키텍처](docs/architecture.md)
 - [실험 운영 규칙](docs/labs/README.md)
 - [실험 문서 템플릿](docs/labs/_template.md)
+- [학습 기록과 회상 튜터 운영 규칙](study/README.md)
 
 ## 주의사항
 

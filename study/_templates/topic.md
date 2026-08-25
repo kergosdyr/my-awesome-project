@@ -1,6 +1,7 @@
 ---
 title: ""
 status: active
+review_status: scheduled
 created: YYYY-MM-DD
 last_reviewed: null
 next_review: YYYY-MM-DD

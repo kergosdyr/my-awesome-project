@@ -1,6 +1,7 @@
 ---
 title: "AI를 회상 튜터로 사용하는 학습 루프"
 status: active
+review_status: scheduled
 created: 2026-08-25
 last_reviewed: null
 next_review: 2026-08-26
@@ -9,14 +10,14 @@ review_count: 0
 blog_seed: maybe
 tags: [retrieval-practice, spaced-repetition, self-explanation, ai-tutor]
 sources:
-  - "사용자가 제공한 학습법 조사문"
+  - "../sources/ai-learning-research.md"
 ---
 
 # AI를 회상 튜터로 사용하는 학습 루프
 
 ## 이 노트의 출발점
 
-사용자가 제공한 조사문을 바탕으로 만든 운영 원칙이다. 아직 사용자의 첫 회상 답변은 없으므로, 아래 내용은 학습 결과가 아니라 다음 세션에서 검증할 가설과 질문이다.
+사용자가 제공한 조사문을 바탕으로 만든 운영 원칙이다. 조사문에 포함된 연구와 링크는 [출처 노트](../sources/ai-learning-research.md)에 보존했다. 아직 사용자의 첫 회상 답변은 없으므로, 아래 내용은 학습 결과가 아니라 다음 세션에서 검증할 가설과 질문이다.
 
 ## 현재의 한 문장 설명
 
