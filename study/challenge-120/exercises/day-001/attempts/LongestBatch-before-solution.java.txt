@@ -1,0 +1,58 @@
+package challenge;
+
+/**
+ * Day 001 · C001 — 처리 예산 안의 가장 긴 연속 구간 (25분)
+ *
+ * <h2>문제</h2>
+ * 로그별 처리 비용 costs가 원래 순서대로 주어진다.
+ * 비용 합이 budget 이하인 연속 구간 중 최대 길이를 반환한다.
+ * 가능한 비어 있지 않은 구간이 없으면 0을 반환한다.
+ *
+ * <h2>제약조건</h2>
+ * <ul>
+ *   <li>costs는 null이 아니며 길이는 0~200,000.</li>
+ *   <li>각 비용은 0~1,000,000,000.</li>
+ *   <li>budget은 0~1,000,000,000,000,000.</li>
+ *   <li>입력 배열을 변경하지 않는다.</li>
+ *   <li>목표: 시간 O(n), 추가 공간 O(1).</li>
+ * </ul>
+ *
+ * <h2>예시</h2>
+ * <pre>
+ * costs = [4, 2, 1, 7, 3], budget = 8  → 3
+ * costs = [0, 0, 5],       budget = 0  → 2
+ * costs = [],             budget = 10 → 0
+ * </pre>
+ *
+ * <h2>실행 및 제출</h2>
+ * IntelliJ 상단에서 {@code Day 001 - Coding}을 선택하고 ▶ 실행.
+ * 초기 접근, 구현, 본인이 추가한 경계 테스트와 결과, 시간·공간 복잡도를 제출한다.
+ * 목표 복잡도에 도달하지 못해도 현재 풀이와 한계를 그대로 남긴다.
+ * 공개 테스트 통과만으로 복잡도와 모든 경우의 정당성이 증명되지는 않는다.
+ * 공식 API 참조와 로컬 테스트는 허용하며 AI 풀이·자동완성·풀이 검색은 사용하지 않는다.
+ * 제공된 구현 틀과 테스트는 독립성 감점에서 제외한다.
+ */
+public class LongestBatch {
+    public int longestBatch(int[] costs, long budget) {
+        // TODO: 요구사항에 맞게 구현하세요. 풀이 방식은 직접 선택합니다.
+        int max = 0;
+        int len = 0;
+        long budgetRemain = 0;
+        for (int i = 0; i < costs.length; i++) {
+            budgetRemain += costs[i];
+            if(budgetRemain <= budget) {
+                len++;
+            } else {
+                len = 0;
+                budgetRemain = 0;
+                i = i -1;
+            }
+            max = Math.max(max, len);
+
+        }
+        return max;
+    }
+}
+/**
+ * 뭐 대충 내가 생각했을땐 이렇게 하면 풀릴거같은데? O(n) 도 맞는게 for 로 한번만 접근하고있고. O(1) 도 맞는게 따로 배열을 선언하지도 않았으니까?
+ */
