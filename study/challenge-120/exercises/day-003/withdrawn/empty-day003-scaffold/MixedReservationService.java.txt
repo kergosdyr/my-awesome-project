@@ -1,0 +1,58 @@
+package challenge;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * B003 · Day 3/120 (2026-09-11): 마지막 좌석의 취소와 새 예약.
+ * 정원은 1. event=1, 기존 reservation=10/user=100, remaining=0에서 시작한다.
+ * 다른 사용자의 reserve(1,200)와 cancel(1,10)은 별도 트랜잭션이다.
+ * reserve: 빈 좌석이 있으면 예약 생성 + 잔여 감소 후 RESERVED, 없으면 SOLD_OUT(무변경).
+ * cancel: 해당 이벤트에 속한 예약을 삭제 + 잔여 반환 후 CANCELLED, 없으면 NOT_FOUND(무변경).
+ * 이벤트가 없으면 두 연산 모두 NOT_FOUND. 입력 ID는 양수, 사용자200은 기존 예약이 없다.
+ * 예약 중복 요청/여러 좌석/교착 재시도 설계는 이번 범위에서 제외한다.
+ *
+ * 취소 커밋 후 예약 시작: CANCELLED/RESERVED, 최종 기존예약0·새예약1·잔여0.
+ * 예약 SOLD_OUT 커밋 후 취소 시작: SOLD_OUT/CANCELLED, 최종 예약0·잔여1.
+ * 두 요청이 겹치면 위 두 결과 모두 허용. 취소 진행 중이라는 이유만으로 성공을 강제하지 않는다.
+ * 커밋된 최종 상태는 항상 예약수+잔여=1, 각 값은 0~1. 응답과 사용자별 예약도 일치해야 한다.
+ * 중간 RuntimeException은 전파하며 해당 요청의 변경 전부를 롤백한다.
+ * 취소 롤백 시 기존예약1·잔여0, 새 예약은 SOLD_OUT. 빈자리에서 예약 롤백 시 예약0·잔여1.
+ *
+ * 데이터: event(event_id,remaining), reservation(reservation_id,event_id,user_id). 취소는 행 삭제.
+ * cancel의 두 번째 인수는 사용자ID가 아닌 예약ID다. 새 예약ID는 DB 자동 생성, 반환에 ID 추가 불필요.
+ * 입력 계약 표는 README의 B003 상세 요구사항 참고. HTTP API/컨트롤러는 작성하지 않는다.
+ * 학습 목표: 예약수+잔여 불변식, 원자성과 동시 실행의 차이, 커밋과 롤백, 예외 후 원복,
+ * 요청 시작 순서와 DB 관찰 순서의 차이. 락 선택/검사 순서는 직접 판단한다.
+ * 순차→롤백→혼합 경합 검증은 제공 테스트에서 수행한다.
+ *
+ * 구현 대상: 아래 업무 TODO 두 개와 필요한 Repository. 기존 날짜 코드를 덮어쓰지 않는다.
+ * @Transactional은 제공한다. 필요한 설정은 변경할 수 있다. JVM 내부 잠금만으로 해결하지 않는다.
+ * 실행: Day 003 - Backend / Day 003 - Backend Minimum.
+ * 기본 Backend45분, Minimum20분(순차·롤백 구현, 경합은 순서 설명). 환경 준비 시간 제외.
+ * 제출: 실제시간, 첫 접근, 테스트/코드, ORDER.md의 두 트랜잭션 순서, 도움 범위.
+ * 독립 설명: 어느 요청이 무엇을 관찰했는가? 최종 상태를 지키는 범위는 어디까지인가?
+ * 동시 실행·장애 주입·순서 재현은 AI가 테스트에서 담당한다. 사용자는 ORDER.md에 예상 순서를 설명한다.
+ * H2 공개 테스트이며 MySQL/모든 스케줄/성능 보장은 검증하지 않는다. 정답은 제공하지 않는다.
+ */
+@Service
+public class MixedReservationService {
+    public enum Result { RESERVED, SOLD_OUT, CANCELLED, NOT_FOUND }
+    private final EventRepository events;
+    private final ReservationRepository reservations;
+
+    public MixedReservationService(EventRepository events, ReservationRepository reservations) {
+        this.events = events;
+        this.reservations = reservations;
+    }
+
+    @Transactional
+    public Result reserve(long eventId, long userId) {
+        throw new UnsupportedOperationException("TODO B003 reserve");
+    }
+
+    @Transactional
+    public Result cancel(long eventId, long reservationId) {
+        throw new UnsupportedOperationException("TODO B003 cancel");
+    }
+}

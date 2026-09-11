@@ -1,0 +1,15 @@
+package challenge;
+import org.springframework.stereotype.Component;
+/** 테스트 관찰 전용. 업무 판단이나 동기화 해법으로 사용하지 않습니다. */
+@Component
+public class TransactionProbe {
+    public interface Observer {
+        default void entered(String operation) {}
+        default void flushed(String operation) {}
+    }
+    private final ThreadLocal<Observer> observer = new ThreadLocal<>();
+    public void install(Observer value) { observer.set(value); }
+    public void clear() { observer.remove(); }
+    public void entered(String operation) { if(observer.get()!=null) observer.get().entered(operation); }
+    public void flushed(String operation) { if(observer.get()!=null) observer.get().flushed(operation); }
+}
