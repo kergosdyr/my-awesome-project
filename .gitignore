@@ -4,16 +4,8 @@
 .env
 .worktrees/
 
-backend/.gradle/
-backend/build/
-backend/.classpath
-backend/.project
-backend/.settings/
-
-frontend/node_modules/
-frontend/.next/
-frontend/coverage/
-frontend/out/
+# Disposable scratch work; final deliverables belong in output/.
+/tmp/
 
 *.log
 *.pid

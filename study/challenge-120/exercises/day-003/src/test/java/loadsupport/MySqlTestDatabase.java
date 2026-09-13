@@ -9,5 +9,6 @@ public final class MySqlTestDatabase {
     public static String url() { return DB.getJdbcUrl(); }
     public static String user() { return DB.getUsername(); }
     public static String password() { return DB.getPassword(); }
+    public static String containerId() { return DB.getContainerId(); }
     public static void stop() { DB.stop(); }
 }

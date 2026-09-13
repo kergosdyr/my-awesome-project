@@ -1,9 +1,0 @@
-node_modules
-.next
-out
-coverage
-.git
-.gitignore
-*.log
-*.tsbuildinfo
-next-env.d.ts
