@@ -2,18 +2,18 @@
 
 기술 블로그와 직접 풀어보는 Java/Spring 공부 예제, 날짜별 학습 기록을 보관합니다.
 
-- [120일 챌린지](study/challenge-120/README.md) · [현재 Day 5](study/challenge-120/exercises/day-005/README.md)
+- [120일 챌린지](study/challenge-120/README.md) · [FORM 커머스·Day6 결제](study/challenge-120/docs/exercises/payment-http.md)
 - [학습 기록과 복습 운영](study/README.md)
 - [블로그](blog/README.md)
 - [기존 조사·산출물](RESOURCES.md)
 
 ## 시작하기
 
-Java 21을 사용합니다. IntelliJ에서 `study/challenge-120`을 Gradle 프로젝트로 열면 날짜별 실습을 실행할 수 있습니다.
+Java 21을 사용합니다. IntelliJ에서 `study/challenge-120`을 Gradle 프로젝트로 열면 하나의 Java 프로젝트에서 주제별 코드와 테스트를 실행할 수 있습니다. 날짜는 day/NNN 브랜치와 PR로 관리합니다.
 
 ```sh
-make test                 # 현재 C005 코딩 테스트
-make check-study          # 전체 실습 컴파일 + Day5 코딩/제공 인프라 검사
+make test                 # 공유 프로젝트의 코딩 테스트 전체
+make check-study          # 전체 컴파일 + 기존 CI15개·커머스 환경9개
 make setup-blog           # 최초 설정 또는 의존성 변경 때만
 make check-blog           # 블로그 lint·typecheck
 make build-blog           # 블로그 배포 빌드 (배포하지 않음)
@@ -23,8 +23,9 @@ make build-blog           # 블로그 배포 빌드 (배포하지 않음)
 
 ```sh
 cd study/challenge-120
-./gradlew :day-005:test
-./gradlew :day-005:test -Pmysql --tests 'challenge.payment.*'
+./gradlew run        # FORM 스토어: http://127.0.0.1:18086/
+./gradlew test legacyTest --continue
+./gradlew commerceInfrastructureTest -Pmysql
 ```
 
 ## 저장소 구조
@@ -32,7 +33,7 @@ cd study/challenge-120
 | 위치 | 내용 |
 | --- | --- |
 | `blog/` | Next.js 기술 블로그 |
-| `study/challenge-120/` | 통합 Gradle 공부 예제와 장부 |
+| `study/challenge-120/` | 단일 Gradle 공부 프로젝트·PR 운영·장부 |
 | `study/sessions/`, `study/topics/` | 학습 기록과 주제별 이해 |
 | `study/redis-kotlin/` | 별도 Kotlin Redis 실습 |
 | `docs/` | 조사·작업 참고 자료 |

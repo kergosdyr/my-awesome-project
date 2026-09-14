@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 460" fill="none"><defs>
+<linearGradient id="fabric" x1="130" y1="80" x2="340" y2="400" gradientUnits="userSpaceOnUse"><stop stop-color="#818c65"/><stop offset=".5" stop-color="#66734d"/><stop offset="1" stop-color="#56613e"/></linearGradient>
+<linearGradient id="cotton" x1="140" y1="100" x2="320" y2="370"><stop stop-color="#f7f4e9"/><stop offset="1" stop-color="#e6e1d1"/></linearGradient>
+<linearGradient id="canvas" x1="130" y1="160" x2="335" y2="375"><stop stop-color="#e0d6bb"/><stop offset="1" stop-color="#c8bc9e"/></linearGradient>
+</defs><path d="M177 181V113Q177 61 235 61T293 113V181H276V113Q276 80 235 80T194 113V181Z" fill="#a99d80" stroke="#91856c" stroke-width="2"/>
+<path d="M133 161H338L325 370Q236 395 147 370Z" fill="url(#canvas)" stroke="#a79b80" stroke-width="2"/>
+<path d="M147 172 159 360Q236 379 312 360L324 172M179 166V220H196V166M275 166V220H292V166" fill="none" stroke="#b4a88c" stroke-width="2"/>
+<path d="M149 359 164 342M323 359 309 342" stroke="#958b72" stroke-width="2"/>
+<text x="235" y="282" text-anchor="middle" font-family="Georgia,serif" font-size="25" fill="#59604a">STILL</text><text x="235" y="305" text-anchor="middle" font-family="Georgia,serif" font-size="16" letter-spacing="4" fill="#59604a">OBJECTS</text></svg>
