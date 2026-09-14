@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 460" fill="none"><defs>
+<linearGradient id="fabric" x1="130" y1="80" x2="340" y2="400" gradientUnits="userSpaceOnUse"><stop stop-color="#818c65"/><stop offset=".5" stop-color="#66734d"/><stop offset="1" stop-color="#56613e"/></linearGradient>
+<linearGradient id="cotton" x1="140" y1="100" x2="320" y2="370"><stop stop-color="#f7f4e9"/><stop offset="1" stop-color="#e6e1d1"/></linearGradient>
+<linearGradient id="canvas" x1="130" y1="160" x2="335" y2="375"><stop stop-color="#e0d6bb"/><stop offset="1" stop-color="#c8bc9e"/></linearGradient>
+</defs><path d="M168 100 203 84 Q234 107 267 84 L302 100 379 156 334 222 298 198 304 369 Q236 387 168 369 L172 198 135 222 90 156Z" fill="url(#cotton)" stroke="#c4bfae" stroke-width="2"/>
+<path d="M203 84Q235 145 267 84L259 81Q235 115 211 81Z" fill="#cfcbbd" stroke="#bdb7a6" stroke-width="2"/>
+<path d="M99 165 136 212M332 212 369 166M170 358Q236 374 303 358M172 198 182 135M298 198 288 135" stroke="#d3cfbf" stroke-width="2" fill="none"/>
+<path d="M273 172H292V198Q282 204 273 198Z" fill="#e6e1d1" stroke="#d1cbb9"/>
+<path d="M190 309Q203 304 220 310M256 338Q274 331 288 339" stroke="#dcd7c6" stroke-width="2" fill="none"/></svg>

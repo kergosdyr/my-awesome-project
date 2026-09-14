@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 460" fill="none"><defs>
+<linearGradient id="fabric" x1="130" y1="80" x2="340" y2="400" gradientUnits="userSpaceOnUse"><stop stop-color="#818c65"/><stop offset=".5" stop-color="#66734d"/><stop offset="1" stop-color="#56613e"/></linearGradient>
+<linearGradient id="cotton" x1="140" y1="100" x2="320" y2="370"><stop stop-color="#f7f4e9"/><stop offset="1" stop-color="#e6e1d1"/></linearGradient>
+<linearGradient id="canvas" x1="130" y1="160" x2="335" y2="375"><stop stop-color="#e0d6bb"/><stop offset="1" stop-color="#c8bc9e"/></linearGradient>
+</defs><path d="M145 90 205 67 235 92 265 67 325 90 389 169 347 216 318 185 326 383 Q237 399 144 383 L151 185 119 216 79 168Z" fill="url(#fabric)" stroke="#424c32" stroke-width="2"/>
+<path d="M205 67 235 92 265 67 269 111 249 138 235 101 219 138 199 111Z" fill="#68734d" stroke="#424c32" stroke-width="2"/>
+<path d="M235 108V390M144 373Q237 387 326 373M148 183 137 144M320 183 334 141M88 172 120 201M350 202 380 173" fill="none" stroke="#84916a" stroke-width="3"/>
+<path d="M163 172H213V230H163ZM257 172H306V230H257ZM160 285H213V354H158ZM259 285H310L312 354H259Z" fill="#626f48" stroke="#3f4b30" stroke-width="2"/>
+<path d="M162 172H214V189L188 197 162 190ZM256 172H307V189L282 197 256 190ZM160 283H213V298H159ZM259 283H310V298H259Z" fill="#74805a" stroke="#424c32" stroke-width="1.5"/>
+<g fill="#b3b39a"><circle cx="235" cy="155" r="3"/><circle cx="235" cy="211" r="3"/><circle cx="235" cy="267" r="3"/><circle cx="235" cy="323" r="3"/><circle cx="235" cy="369" r="3"/><circle cx="188" cy="183" r="2.5"/><circle cx="282" cy="183" r="2.5"/></g>
+<path d="M161 246Q173 252 185 246M294 254Q304 248 312 253M167 365 175 358M285 365 294 359" fill="none" stroke="#54613e" stroke-width="2"/></svg>

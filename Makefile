@@ -6,11 +6,11 @@ help:
 setup-blog: ## 최초 설정 또는 blog lockfile 변경 때 의존성을 설치합니다.
 	cd blog && npm ci
 
-test: ## 현재 Day5 코딩 테스트를 실행합니다.
-	cd study/challenge-120 && ./gradlew :day-005:test --tests 'challenge.coding.*'
+test: ## 공유 Java 프로젝트의 코딩 테스트를 실행합니다.
+	cd study/challenge-120 && ./gradlew test --tests 'challenge.coding.*'
 
-check-study: ## 전체 실습 컴파일과 Day5 코딩·제공 인프라를 확인합니다. 업무 TODO 검사는 각 과제에서 실행합니다.
-	cd study/challenge-120 && ./gradlew testClasses :day-005:test --tests 'challenge.coding.*' --tests '*PaymentInfrastructureTest'
+check-study: ## 전체 컴파일·기존 CI15개·커머스 환경9개를 확인합니다. 전체 과제는 test legacyTest로 검사합니다.
+	cd study/challenge-120 && ./gradlew testClasses ciTest
 
 check-blog: ## 블로그 lint와 typecheck를 실행합니다.
 	cd blog && npm run lint && npm run typecheck
