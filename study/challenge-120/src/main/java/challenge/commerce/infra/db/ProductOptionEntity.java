@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "store_option")
 public class ProductOptionEntity {
-    @Id long id;
+    @Id
+    long id;
+
     long productId;
     String color;
     String size;

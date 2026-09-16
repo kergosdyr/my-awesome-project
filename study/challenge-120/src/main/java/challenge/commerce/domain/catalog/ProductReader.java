@@ -19,7 +19,6 @@ public class ProductReader {
     }
 
     public Product readForOption(long optionId) {
-        return products.findByOptionId(optionId)
-                .orElseThrow(() -> BusinessException.notFound("상품 옵션을 찾을 수 없습니다."));
+        return products.findByOptionId(optionId).orElseThrow(() -> BusinessException.notFound("상품 옵션을 찾을 수 없습니다."));
     }
 }

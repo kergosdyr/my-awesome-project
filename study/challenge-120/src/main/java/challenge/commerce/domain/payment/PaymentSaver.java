@@ -12,8 +12,7 @@ public class PaymentSaver {
         this.payments = payments;
     }
 
-    public Payment create(
-            long orderId, String key, long amount, Payment.Status status, String approvalId) {
+    public Payment create(long orderId, String key, long amount, Payment.Status status, String approvalId) {
         return payments.create(new Payment(null, orderId, key, amount, status, approvalId));
     }
 

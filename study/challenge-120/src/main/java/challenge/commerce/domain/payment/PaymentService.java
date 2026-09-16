@@ -1,6 +1,7 @@
 package challenge.commerce.domain.payment;
 
 import challenge.commerce.domain.order.OrderReader;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +19,7 @@ public class PaymentService {
     private final PaymentGateway pg;
 
     public PaymentService(
-            PaymentReader paymentReader,
-            PaymentSaver paymentSaver,
-            OrderReader orderReader,
-            PaymentGateway pg) {
+            PaymentReader paymentReader, PaymentSaver paymentSaver, OrderReader orderReader, PaymentGateway pg) {
         this.paymentReader = paymentReader;
         this.paymentSaver = paymentSaver;
         this.orderReader = orderReader;
@@ -36,96 +34,58 @@ public class PaymentService {
         if (optionalPayment.isPresent()) {
             return optionalPayment
                     .filter(Payment::isPaid)
-                    .map(
-                            payment ->
-                                    new PaymentResult(
-                                            PaymentResult.Status.PAID, payment.approvalId()))
+                    .map(payment -> new PaymentResult(PaymentResult.Status.PAID, payment.approvalId()))
                     .orElseGet(
-                            () ->
-                                    pg
-                                            .lookup(String.valueOf(orderId))
-                                            .filter(PaymentGateway.Receipt::approved)
-                                            .stream()
-                                            .peek(
-                                                    lookupReceipt ->
-                                                            createPayment(
-                                                                    orderId,
-                                                                    lookupReceipt.key(),
-                                                                    lookupReceipt.approvalId(),
-                                                                    amount,
-                                                                    PaymentResult.Status.PAID))
-                                            .map(
-                                                    lookupReceipt ->
-                                                            new PaymentResult(
-                                                                    PaymentResult.Status.PAID,
-                                                                    lookupReceipt.approvalId()))
-                                            .findAny()
-                                            .orElseGet(
-                                                    () ->
-                                                            new PaymentResult(
-                                                                    PaymentResult.Status.PENDING,
-                                                                    null)));
+                            () -> pg.lookup(String.valueOf(orderId)).filter(PaymentGateway.Receipt::approved).stream()
+                                    .peek(lookupReceipt -> paymentSaver.create(
+                                            orderId,
+                                            lookupReceipt.key(),
+                                            amount,
+                                            Payment.Status.PAID,
+                                            lookupReceipt.approvalId()))
+                                    .map(lookupReceipt ->
+                                            new PaymentResult(PaymentResult.Status.PAID, lookupReceipt.approvalId()))
+                                    .findAny()
+                                    .orElseGet(() -> new PaymentResult(PaymentResult.Status.PENDING, null)));
         }
 
         PaymentGateway.Receipt receipt;
         try {
             receipt = pg.approve(String.valueOf(orderId), orderId, amount);
         } catch (PaymentGateway.ResponseLostException e) {
-            return pg
-                    .lookup(String.valueOf(orderId))
-                    .filter(PaymentGateway.Receipt::approved)
-                    .stream()
-                    .peek(
-                            lookupReceipt ->
-                                    createPayment(
-                                            orderId,
-                                            lookupReceipt.key(),
-                                            lookupReceipt.approvalId(),
-                                            amount,
-                                            PaymentResult.Status.PAID))
-                    .map(
-                            lookupReceipt ->
-                                    new PaymentResult(
-                                            PaymentResult.Status.PAID, lookupReceipt.approvalId()))
+            return pg.lookup(String.valueOf(orderId)).filter(PaymentGateway.Receipt::approved).stream()
+                    .peek(lookupReceipt -> paymentSaver.create(
+                            orderId, lookupReceipt.key(), amount, Payment.Status.PAID, lookupReceipt.approvalId()))
+                    .map(lookupReceipt -> new PaymentResult(PaymentResult.Status.PAID, lookupReceipt.approvalId()))
                     .findAny()
                     .orElseGet(() -> new PaymentResult(PaymentResult.Status.PENDING, null));
         }
 
         if (!receipt.approved()) {
-            createPayment(
-                    orderId,
-                    receipt.key(),
-                    receipt.approvalId(),
-                    amount,
-                    PaymentResult.Status.PENDING);
+            paymentSaver.create(orderId, receipt.key(), amount, Payment.Status.PENDING, receipt.approvalId());
             return new PaymentResult(PaymentResult.Status.PENDING, receipt.approvalId());
         }
 
-        createPayment(
-                orderId, receipt.key(), receipt.approvalId(), amount, PaymentResult.Status.PAID);
+        paymentSaver.create(orderId, receipt.key(), amount, Payment.Status.PAID, receipt.approvalId());
         return new PaymentResult(PaymentResult.Status.PAID, receipt.approvalId());
     }
 
     // 이전 사용자 생성 호출의 인자 순서·반환 상태를 연결하는 이식 경계다.
-    private Payment createPayment(
-            long orderId, String key, String approvalId, long amount, PaymentResult.Status status) {
-        return paymentSaver.create(
-                orderId,
-                key,
-                amount,
-                status == PaymentResult.Status.PAID ? Payment.Status.PAID : Payment.Status.PENDING,
-                approvalId);
-    }
 
     /** TODO B006: 기존 사용자 작성본의 새 행 생성 동작을 보존했다. 기존 결제와 Payment 상태 동작을 조합하도록 개선한다. */
     @Transactional
     public boolean onNotification(PaymentGateway.Receipt receipt) {
-        createPayment(
-                receipt.orderId(),
-                receipt.key(),
-                receipt.approvalId(),
-                receipt.amount(),
-                PaymentResult.Status.PAID);
-        return receipt.approved();
+
+        Optional<Payment> optionalPayment = paymentReader.readByOrderId(receipt.orderId());
+        if (optionalPayment.isEmpty()) {
+            return false;
+        }
+
+        Payment payment = optionalPayment.get();
+        if (receipt.approved()) {
+            payment.confirmApproval(receipt.approvalId());
+        }
+        paymentSaver.saveChanges(payment);
+        return true;
     }
 }

@@ -9,17 +9,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 class FirstUniqueTest {
     @ParameterizedTest
-    @CsvSource(
-            value = {
-                "leetcode,0",
-                "loveleetcode,2",
-                "aabb,-1",
-                "'',-1",
-                "z,0",
-                "aabbc,4",
-                "abac,1",
-                "abcabc,-1"
-            })
+    @CsvSource(value = {"leetcode,0", "loveleetcode,2", "aabb,-1", "'',-1", "z,0", "aabbc,4", "abac,1", "abcabc,-1"})
     void publicExamples(String input, int expected) {
         assertEquals(expected, new FirstUnique().find(input));
     }

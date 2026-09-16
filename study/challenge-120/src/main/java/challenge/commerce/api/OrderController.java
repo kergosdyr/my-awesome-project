@@ -21,7 +21,8 @@ public class OrderController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PurchaseOrder create(@Valid @RequestBody CreateRequest request) {
-        return orders.create(new OrderService.CreateOrder(request.optionId(), request.quantity()));
+        return orders.create(
+                new OrderService.CreateOrder(request.optionId(), request.quantity(), request.displayedUnitPrice()));
     }
 
     @GetMapping
@@ -34,5 +35,8 @@ public class OrderController {
         return queries.find(id);
     }
 
-    public record CreateRequest(@Positive long optionId, @Min(1) @Max(5) int quantity) {}
+    public record CreateRequest(
+            @Positive long optionId,
+            @Min(1) @Max(5) int quantity,
+            @NotNull @Positive Long displayedUnitPrice) {}
 }

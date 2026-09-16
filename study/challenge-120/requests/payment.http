@@ -5,7 +5,7 @@ GET http://127.0.0.1:18086/api/products
 POST http://127.0.0.1:18086/api/orders
 Content-Type: application/json
 
-{"optionId":101,"quantity":1}
+{"displayedUnitPrice":129000,"optionId":101,"quantity":1}
 
 > {% client.global.set("orderId", response.body.id); %}
 

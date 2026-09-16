@@ -19,8 +19,7 @@ public class Payment {
     private Status status;
     private String approvalId;
 
-    public Payment(
-            Long id, long orderId, String key, long amount, Status status, String approvalId) {
+    public Payment(Long id, long orderId, String key, long amount, Status status, String approvalId) {
         this.id = id;
         this.orderId = orderId;
         this.key = key;
@@ -31,7 +30,8 @@ public class Payment {
 
     /** TODO B006: 같은 승인 ID 반복을 허용하고 상태·승인 ID를 함께 변경한다. 입력은 유효한 동일 승인 ID다. */
     public void confirmApproval(String approvalId) {
-        throw new UnsupportedOperationException("TODO B006: Payment 승인 상태 전이");
+        this.status = Status.PAID;
+        this.approvalId = approvalId;
     }
 
     public Long id() {

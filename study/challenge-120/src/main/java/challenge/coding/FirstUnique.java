@@ -12,6 +12,17 @@ package challenge.coding;
  */
 public class FirstUnique {
     public int find(String text) {
-        throw new UnsupportedOperationException("TODO C006: 첫 시도부터 작성");
+        int[] counts = new int[26];
+
+        for (int i = 0; i < text.length(); i++) {
+            counts[text.charAt(i) - 'a']++;
+        }
+
+        for (int i = 0; i < text.length(); i++) {
+            if (counts[text.charAt(i) - 'a'] == 1) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

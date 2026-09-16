@@ -15,7 +15,6 @@ public class StockAllocator {
     }
 
     public void allocate(long optionId, int quantity) {
-        if (!products.takeStock(optionId, quantity))
-            throw BusinessException.conflict("선택한 옵션의 재고가 부족합니다.");
+        if (!products.takeStock(optionId, quantity)) throw BusinessException.conflict("선택한 옵션의 재고가 부족합니다.");
     }
 }

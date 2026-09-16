@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "store_product")
 public class ProductEntity {
-    @Id long id;
+    @Id
+    long id;
+
     String brand;
     String name;
 
@@ -19,13 +21,7 @@ public class ProductEntity {
     protected ProductEntity() {}
 
     public ProductEntity(
-            long id,
-            String brand,
-            String name,
-            String description,
-            String category,
-            long price,
-            String image) {
+            long id, String brand, String name, String description, String category, long price, String image) {
         this.id = id;
         this.brand = brand;
         this.name = name;

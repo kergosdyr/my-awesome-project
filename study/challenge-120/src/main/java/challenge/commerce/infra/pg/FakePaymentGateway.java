@@ -43,13 +43,8 @@ public class FakePaymentGateway implements PaymentGateway {
             return previous;
         }
         var status = mode == Mode.PROCESSING ? Status.PROCESSING : Status.APPROVED;
-        var receipt =
-                new Receipt(
-                        key,
-                        orderId,
-                        amount,
-                        status,
-                        status == Status.APPROVED ? "commerce-approval-" + ++approvals : null);
+        var receipt = new Receipt(
+                key, orderId, amount, status, status == Status.APPROVED ? "commerce-approval-" + ++approvals : null);
         ledger.put(key, receipt);
         if (mode == Mode.APPROVE_THEN_LOSE_RESPONSE) throw new ResponseLostException();
         return receipt;
@@ -61,16 +56,10 @@ public class FakePaymentGateway implements PaymentGateway {
     }
 
     public synchronized Receipt complete(String key) {
-        var previous =
-                lookup(key).orElseThrow(() -> new IllegalArgumentException("unknown PG key"));
+        var previous = lookup(key).orElseThrow(() -> new IllegalArgumentException("unknown PG key"));
         if (previous.approved()) return previous;
-        var receipt =
-                new Receipt(
-                        key,
-                        previous.orderId(),
-                        previous.amount(),
-                        Status.APPROVED,
-                        "commerce-approval-" + ++approvals);
+        var receipt = new Receipt(
+                key, previous.orderId(), previous.amount(), Status.APPROVED, "commerce-approval-" + ++approvals);
         ledger.put(key, receipt);
         return receipt;
     }

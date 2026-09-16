@@ -19,8 +19,8 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
 
     @Test
     void orderUsesServerPriceAndConsumesOptionStock() throws Exception {
-        var response =
-                request("POST", "/api/orders", "{\"optionId\":101,\"quantity\":2,\"amount\":1}");
+        var response = request(
+                "POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":101,\"quantity\":2,\"amount\":1}");
         assertEquals(201, response.code());
         assertEquals(258000, response.body().get("totalAmount").asLong());
         assertEquals("유틸리티 필드 재킷", response.body().get("productName").asText());
@@ -35,19 +35,30 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
                         .asInt());
         assertEquals(
                 "UNPAID",
-                details(response.body().get("id").asLong()).body().get("paymentStatus").asText());
+                details(response.body().get("id").asLong())
+                        .body()
+                        .get("paymentStatus")
+                        .asText());
     }
 
     @Test
     void soldOutAndInvalidQuantitiesDoNotCreateOrders() throws Exception {
         assertEquals(
-                409, request("POST", "/api/orders", "{\"optionId\":103,\"quantity\":1}").code());
+                409,
+                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":103,\"quantity\":1}")
+                        .code());
         assertEquals(
-                400, request("POST", "/api/orders", "{\"optionId\":101,\"quantity\":0}").code());
+                400,
+                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":101,\"quantity\":0}")
+                        .code());
         assertEquals(
-                400, request("POST", "/api/orders", "{\"optionId\":101,\"quantity\":6}").code());
+                400,
+                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":101,\"quantity\":6}")
+                        .code());
         assertEquals(
-                404, request("POST", "/api/orders", "{\"optionId\":999,\"quantity\":1}").code());
+                404,
+                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":999,\"quantity\":1}")
+                        .code());
         assertEquals(0, orders.count());
         assertEquals(
                 12,
@@ -63,9 +74,13 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
     @Test
     void repeatedOrdersCannotOversellStock() throws Exception {
         assertEquals(
-                201, request("POST", "/api/orders", "{\"optionId\":102,\"quantity\":5}").code());
+                201,
+                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":102,\"quantity\":5}")
+                        .code());
         assertEquals(
-                409, request("POST", "/api/orders", "{\"optionId\":102,\"quantity\":5}").code());
+                409,
+                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":102,\"quantity\":5}")
+                        .code());
         assertEquals(1, orders.count());
         assertEquals(
                 3,
@@ -119,18 +134,17 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
 
     @Test
     void storefrontAndDeveloperAssetsAreServedBySameApplication() throws Exception {
-        for (var path :
-                new String[] {
-                    "/",
-                    "/store.css",
-                    "/store.js",
-                    "/shared.js",
-                    "/images/jacket.svg",
-                    "/images/tee.svg",
-                    "/images/tote.svg",
-                    "/dev.html",
-                    "/dev.js"
-                }) {
+        for (var path : new String[] {
+            "/",
+            "/store.css",
+            "/store.js",
+            "/shared.js",
+            "/images/jacket.svg",
+            "/images/tee.svg",
+            "/images/tote.svg",
+            "/dev.html",
+            "/dev.js"
+        }) {
             var response = raw("GET", path, "");
             assertEquals(200, response.statusCode(), path);
             assertFalse(response.body().isBlank(), path);

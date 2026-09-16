@@ -11,8 +11,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     private final ProductJpaRepository products;
     private final ProductOptionJpaRepository options;
 
-    public ProductRepositoryImpl(
-            ProductJpaRepository products, ProductOptionJpaRepository options) {
+    public ProductRepositoryImpl(ProductJpaRepository products, ProductOptionJpaRepository options) {
         this.products = products;
         this.options = options;
     }
@@ -21,24 +20,18 @@ public class ProductRepositoryImpl implements ProductRepository {
     public List<Product> findAll() {
         var allOptions = options.findAll(Sort.by("id"));
         return products.findAll(Sort.by("id")).stream()
-                .map(
-                        p ->
-                                new Product(
-                                        p.id,
-                                        p.brand,
-                                        p.name,
-                                        p.description,
-                                        p.category,
-                                        p.price,
-                                        p.image,
-                                        allOptions.stream()
-                                                .filter(o -> o.productId == p.id)
-                                                .map(
-                                                        o ->
-                                                                new Product.Option(
-                                                                        o.id, o.color, o.size,
-                                                                        o.stock))
-                                                .toList()))
+                .map(p -> new Product(
+                        p.id,
+                        p.brand,
+                        p.name,
+                        p.description,
+                        p.category,
+                        p.price,
+                        p.image,
+                        allOptions.stream()
+                                .filter(o -> o.productId == p.id)
+                                .map(o -> new Product.Option(o.id, o.color, o.size, o.stock))
+                                .toList()))
                 .toList();
     }
 

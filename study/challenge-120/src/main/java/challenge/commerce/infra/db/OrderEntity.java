@@ -38,14 +38,6 @@ public class OrderEntity {
 
     PurchaseOrder toDomain() {
         return new PurchaseOrder(
-                id,
-                optionId,
-                productName,
-                optionName,
-                image,
-                unitPrice,
-                quantity,
-                totalAmount,
-                createdAt);
+                id, optionId, productName, optionName, image, unitPrice, quantity, totalAmount, createdAt);
     }
 }

@@ -28,7 +28,6 @@ public class DevelopmentPgController {
 
     @GetMapping("/{key}")
     public PaymentGateway.Receipt find(@PathVariable("key") String key) {
-        return gateway.lookup(key)
-                .orElseThrow(() -> BusinessException.notFound("PG 거래를 찾을 수 없습니다."));
+        return gateway.lookup(key).orElseThrow(() -> BusinessException.notFound("PG 거래를 찾을 수 없습니다."));
     }
 }

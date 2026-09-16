@@ -21,7 +21,9 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     @Override
     public List<Payment> findByOrderIds(Collection<Long> orderIds) {
-        return payments.findByOrderIdIn(orderIds).stream().map(PaymentEntity::toDomain).toList();
+        return payments.findByOrderIdIn(orderIds).stream()
+                .map(PaymentEntity::toDomain)
+                .toList();
     }
 
     @Override

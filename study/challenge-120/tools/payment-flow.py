@@ -25,7 +25,7 @@ def call(method, path, body=None):
 
 
 def main():
-    code, order = call("POST", "/api/orders", {"optionId": 101, "quantity": 1})
+    code, order = call("POST", "/api/orders", {"displayedUnitPrice": 129000, "optionId": 101, "quantity": 1})
     if code != 201:
         raise SystemExit("주문 생성 실패: 재고를 확인하거나 서버를 재시작하세요.")
     order_id = order["id"]

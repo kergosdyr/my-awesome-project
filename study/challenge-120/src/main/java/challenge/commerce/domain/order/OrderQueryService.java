@@ -34,9 +34,10 @@ public class OrderQueryService {
     @Transactional(readOnly = true)
     public List<OrderDetails> list() {
         var allOrders = orders.readAll();
-        var paymentByOrder =
-                payments.readForOrders(allOrders.stream().map(PurchaseOrder::id).toList()).stream()
-                        .collect(Collectors.toMap(Payment::orderId, Function.identity()));
+        var paymentByOrder = payments
+                .readForOrders(allOrders.stream().map(PurchaseOrder::id).toList())
+                .stream()
+                .collect(Collectors.toMap(Payment::orderId, Function.identity()));
         return allOrders.stream()
                 .map(order -> details(order, Optional.ofNullable(paymentByOrder.get(order.id()))))
                 .toList();

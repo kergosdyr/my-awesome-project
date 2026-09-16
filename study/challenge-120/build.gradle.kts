@@ -84,10 +84,20 @@ tasks.register<JavaExec>("legacyPaymentServer") {
 }
 spotless {
     java {
-        target("src/*/java/challenge/commerce/**/*.java", "src/*/java/challenge/coding/FirstUnique*.java")
-        googleJavaFormat("1.28.0").aosp()
+        target("src/*/java/challenge/commerce/**/*.java", "src/*/java/challenge/coding/FirstUnique*.java", "src/*/java/challenge/coding/SizeSearch*.java")
+        palantirJavaFormat("2.96.0")
         removeUnusedImports()
         trimTrailingWhitespace()
         endWithNewline()
     }
+}
+
+// Prints the current behavior, before and after the learner's change. Not a completion test.
+tasks.register<Test>("priceExperiment") {
+    group = "verification"
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    filter { includeTestsMatching("challenge.commerce.PriceObservationTest") }
+    testLogging.showStandardStreams = true
+    outputs.upToDateWhen { false }
 }

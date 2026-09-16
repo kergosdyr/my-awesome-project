@@ -11,7 +11,8 @@
 | 2026-09-11 / 3 | C003(괄호 검증으로 교체) / B003 | 초기 MySQL18/19·k6 1,000VU 통과 / 9월12일 현재 C003 Java9/9·낙관적 확장 H2·MySQL 각각14/14 확인, 확장판 NOT_FOUND 구현 확인 / 독립성·최종 설명 미평가 | 데이터 없음 | [세션](../sessions/2026-09-11.md), [실습](docs/exercises/reservation-concurrency.md) |
 | 2026-09-12 / 4 | C004 / B004 | 사용자 요청으로 발행 / C004 정답 설명 학습 / B004 고정3회 annotation 재시도 제출·MySQL17/17 / 요청별 상한·새 진입점 요구 철회 / 고정3회 기능 확인·단일/분산 경합 부하 비교 완료(낮은 경합에서 최종실패154→16·추가시도1.49%), Retry 범위 마무리·트랜잭션 독립 설명 미확인 | 데이터 없음 | [세션](../sessions/2026-09-12.md), [실습](docs/exercises/maintenance-windows.md) |
 | 2026-09-13 / 5 | C005 / B005 | C005 해답 학습 후 사용자 재작성·return 수정, 공개10/10 통과·O(n) 확인 / B005 오늘 범위 H2·MySQL 핵심각6/6·인프라각5/5 통과 / 범위 밖 알림·금액변경·PROCESSING은 평가 제외 / 독립 설계 설명 대기 / 독립 Pass 미확인 | 데이터 없음 | [세션](../sessions/2026-09-13.md), [실습](docs/exercises/payment-recovery.md) |
-| 2026-09-14 / 6 | C006 / B006 | Order 철회·결제 HTTP/승인 알림으로 정정 / Day5 구현 재사용·Reader/Saver·Controller·Spotless 제공 / 알림·Payment 상태 설계 대기 / 준비 검증은 세션 참조 | 데이터 없음 | [세션](../sessions/2026-09-14.md), [실습](docs/exercises/payment-http.md) |
+| 2026-09-14 / 6 | C006 / B006 | C006 마감: 최초 사용자 풀이9/9·O(n) 시간/O(n) 공간 / AI 횟수 배열 풀이 학습 후 현재 코드9/9·O(1) 공간·원문 순회와 알파벳순 혼동 교정 / 독립 회상 미검증 / B006 사용자 구현 보존·9/15 원본 재검증5/5·독립 설명 미평가 | 데이터 없음 | [세션](../sessions/2026-09-14.md), [실습](docs/exercises/payment-http.md) |
+| 2026-09-15 / 7 | C007 / B007 | C007 해답 설명 후 사용자 구현9/9·O(log n) 시간/O(1) 공간·코딩 마감 / B007 준비 완료·4/8 통과(미구현4실패)·진행 대기 / 독립 이진 탐색 해결로 평가하지 않음 | 데이터 없음 | [과제](docs/exercises/price-consent.md), [세션](../sessions/2026-09-15.md) |
 
 ## Weakness Ledger
 
@@ -32,7 +33,7 @@
 
 ## Weekly Review
 
-리뷰는 날짜별 세션에 저장하고 여기에 링크한다. 현재 데이터 없음.
+리뷰는 날짜별 세션에 저장하고 여기에 링크한다. [Day 7 잠정 리뷰](../sessions/2026-09-15.md): Day 6 Coding 공개 테스트 통과·독립 지연 회상 미검증, Payment 사용자 구현5/5 재검증 확인. 실제 시간·독립 역량 변화는 데이터 없음. 오늘 제출 후 보완한다.
 
 ## Job Search
 

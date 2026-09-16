@@ -30,7 +30,9 @@ class PaymentNotificationContractTest extends CommerceHttpSupport {
         assertEquals(200, notifyApproval(receipt).code());
         assertEquals(200, notifyApproval(receipt).code());
         assertEquals(1, payments.count());
-        assertEquals(receipt.get("approvalId").asText(), pay(id).body().get("approvalId").asText());
+        assertEquals(
+                receipt.get("approvalId").asText(),
+                pay(id).body().get("approvalId").asText());
         assertEquals(1, gateway.approvals());
     }
 

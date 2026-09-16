@@ -15,21 +15,19 @@ public class OrderSaver {
     }
 
     public PurchaseOrder create(Product product, long optionId, int quantity) {
-        var option =
-                product.options().stream()
-                        .filter(o -> o.id() == optionId)
-                        .findFirst()
-                        .orElseThrow();
-        return orders.create(
-                new PurchaseOrder(
-                        null,
-                        optionId,
-                        product.name(),
-                        option.color() + " / " + option.size(),
-                        product.image(),
-                        product.price(),
-                        quantity,
-                        Math.multiplyExact(product.price(), quantity),
-                        Instant.now()));
+        var option = product.options().stream()
+                .filter(o -> o.id() == optionId)
+                .findFirst()
+                .orElseThrow();
+        return orders.create(new PurchaseOrder(
+                null,
+                optionId,
+                product.name(),
+                option.color() + " / " + option.size(),
+                product.image(),
+                product.price(),
+                quantity,
+                Math.multiplyExact(product.price(), quantity),
+                Instant.now()));
     }
 }

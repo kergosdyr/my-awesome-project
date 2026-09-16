@@ -19,13 +19,15 @@ cd study/challenge-120
 
 서버는 loopback에 바인딩한다. H2와 가짜 PG는 메모리 기반이므로 재시작하면 초기화된다. 현재는 단일 실행 환경의 공용 주문 목록이며 회원·인증·실제 PG·배송·취소를 구현하지 않았다.
 
-## 현재 구현과 Day 6
+## 현재 구현과 Day 7
 
 상품 3개와 색상·사이즈 옵션, 옵션 재고, 주문 가격 스냅샷을 제공한다. 한 옵션을 1~5개 주문하며 서버 가격으로 금액을 계산한다. 조건부 재고 차감과 주문 생성을 한 트랜잭션에 묶었다.
 
 결제 요청에는 주문 ID만 사용한다. 기존 사용자의 정상 승인·응답 유실 직후 PG 조회 정책을 실제 주문과 연결했다. 주문 내역의 결제 상태는 저장된 Payment에서 읽고 결제 행이 없으면 UNPAID로 표시한다. FE는 정상 결제·대기·오류를 서버 결과 그대로 보여준다.
 
-**Day 6은 Payment를 계속한다.** 상품·주문은 제공 환경이며 새로운 주문 숙제가 아니다. `Payment.confirmApproval`과 `PaymentService.onNotification`은 사용자 구현 대상으로 남아 있다. 알림은 현재 실패하므로 결제 전체 완성을 뜻하지 않는다. [Day 6 과제](docs/exercises/payment-http.md)에 입력 가정·완료 기준·실행 절차를 명시했다.
+**Day 7은 할인 종료 직후의 가격 확인 실험이다.** [과제·예상 질문·실행](docs/exercises/price-consent.md)에서 시작한다. 화면 가격 전달과 HTTP 재현 환경은 제공했으며, 가격 변경 판단은 사용자 구현 대상으로 남아 있다. 원래 IntelliJ 프로젝트의 `day/007`에서 진행한다.
+
+Day6 사용자 `Payment.confirmApproval`·`PaymentService.onNotification` 구현은 보존했고 상태·알림5/5, C006 9/9 통과를 확인했다. 자료 없는 설명·독립 회상 성공은 별도 미검증이다.
 
 ## 구조
 
@@ -92,6 +94,9 @@ study/challenge-120/
 ./gradlew commerceInfrastructureTest              # 커머스 제공 환경 9개
 ./gradlew ciTest                                  # 위 9개 + 기존 필수 15개
 ./gradlew test --tests 'challenge.commerce.Payment*' # Day6 상태·알림 5개
+./gradlew priceExperiment                         # Day7 현재 가격 변경 동작 관찰
+./gradlew test --tests '*PriceConsentTest'         # Day7 Backend 공개 8개
+./gradlew test --tests '*SizeSearchTest'           # Day7 Coding 공개 9개
 ./gradlew test --tests 'challenge.coding.*'
 ./gradlew test legacyTest --continue              # 현재·과거 기본 공개 계약 전체
 ./gradlew build --continue                        # 위 계약 + 패키징·포맷
@@ -104,10 +109,11 @@ study/challenge-120/
 python3 tools/payment-flow.py                    # 실행 중인 서버에 요청·알림
 ```
 
-H2/MySQL 커머스 제공 환경은 각각 9/9, 기존 CI는 15/15 통과한다. 전체 134개는 111개 통과·23개 실패다. 기존 실패 18개는 유지되며 새 Payment 상태·알림 과제 5개가 추가됐다. `build` 전체 성공으로 표시하지 않는다. `make check-study`는 컴파일·제공 환경·기존 필수 검사를 확인하며 사용자 과제 통과와 구분한다.
+Day7 준비 검증: 컴파일·assemble 성공, H2 커머스 제공 환경9/9·기존 필수15/15·Day6 상태/알림5/5 통과. 가격 관찰 실험1/1 실행 성공. 새 과제는 가격 확인4/8 통과·4개 의도된 실패, C007은9/16 해답 설명 후 사용자 구현9/9 통과로 갱신했다. 전체·MySQL 검사를 이번에 다시 실행하지 않았고 전체 build 성공으로 표시하지 않는다. `make check-study`의 필수 CI 검사는 유지한다.
 
 ## 학습 기록
 
+- [Day 7 할인 종료 가격 실험·사이즈 탐색](docs/exercises/price-consent.md)
 - [Day 6 코딩·커머스 결제](docs/exercises/payment-http.md)
 - [Phase·시간·평가/튜터 원칙](docs/learning-guide.md) · [기존 장부](ledger.md)
 - [이전 예약·결제 실습 실행](legacy/README.md)

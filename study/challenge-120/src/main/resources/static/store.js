@@ -59,6 +59,7 @@ function openProduct(id) {
       await api("/api/orders", "POST", {
         optionId: Number(form.querySelector("#option").value),
         quantity: Number(form.querySelector("#quantity").value),
+        displayedUnitPrice: product.price,
       });
       productDialog.close();
       await openOrders();
