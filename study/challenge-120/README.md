@@ -1,122 +1,67 @@
-# 120 Days Challenge
+# 120일 챌린지 — Coding / FORM Commerce
 
-120일 동안 꾸준히 개발 역량을 쌓기 위한 챌린지.
+[과제 목록](docs/exercises/README.md) · [C007 사이즈 탐색](docs/exercises/C007-SizeSearch.md) · [B007 가격 확인](docs/exercises/B007-price-consent.md) · [학습 장부](ledger.md)
 
-코딩 테스트는 공유 Java 프로젝트에서 독립적으로 풀고, 백엔드는 **FORM이라는 하나의 패션 커머스**를 계속 발전시킨다. 상품·옵션 조회 → 주문 생성 → 결제 요청 → PG 승인 알림 → 주문 내역을 실제 화면과 API로 연결했다. 무신사 같은 구매 경험을 참고한 작은 학습 시스템이다.
+## 작업 구조
 
-## 실행
-
-Java21과 기존 Gradle Wrapper를 사용한다. 별도 FE 설치나 서버 없이 Spring이 HTML/CSS/JavaScript와 API를 함께 제공한다.
-
-```sh
-cd study/challenge-120
-./gradlew run
-```
-
-- 스토어: <http://127.0.0.1:18086/> — 상품·옵션 선택, 주문, 결제, 주문 내역
-- 개발 도구: <http://127.0.0.1:18086/dev.html> — PG 정상/대기/응답 유실, 승인 완료, HTTP 알림 재전송
-- IntelliJ: 이 폴더를 Gradle 프로젝트로 열고 `Commerce - Server` 실행
-
-서버는 loopback에 바인딩한다. H2와 가짜 PG는 메모리 기반이므로 재시작하면 초기화된다. 현재는 단일 실행 환경의 공용 주문 목록이며 회원·인증·실제 PG·배송·취소를 구현하지 않았다.
-
-## 현재 구현과 Day 7
-
-상품 3개와 색상·사이즈 옵션, 옵션 재고, 주문 가격 스냅샷을 제공한다. 한 옵션을 1~5개 주문하며 서버 가격으로 금액을 계산한다. 조건부 재고 차감과 주문 생성을 한 트랜잭션에 묶었다.
-
-결제 요청에는 주문 ID만 사용한다. 기존 사용자의 정상 승인·응답 유실 직후 PG 조회 정책을 실제 주문과 연결했다. 주문 내역의 결제 상태는 저장된 Payment에서 읽고 결제 행이 없으면 UNPAID로 표시한다. FE는 정상 결제·대기·오류를 서버 결과 그대로 보여준다.
-
-**Day 7은 할인 종료 직후의 가격 확인 실험이다.** [과제·예상 질문·실행](docs/exercises/price-consent.md)에서 시작한다. 화면 가격 전달과 HTTP 재현 환경은 제공했으며, 가격 변경 판단은 사용자 구현 대상으로 남아 있다. 원래 IntelliJ 프로젝트의 `day/007`에서 진행한다.
-
-Day6 사용자 `PaymentEntity.confirmApproval`·`PaymentService.onNotification` 구현은 보존했고 상태·알림5/5, C006 9/9 통과를 확인했다. 자료 없는 설명·독립 회상 성공은 별도 미검증이다.
-
-## 구조
+하나의 IntelliJ 프로젝트·Gradle Wrapper 아래 **서로 의존하지 않는 두 모듈**을 둔다.
 
 ```text
-study/challenge-120/
-├── build.gradle.kts / settings.gradle.kts / gradlew / gradle/
-├── src/
-│   ├── main/java/challenge/
-│   │   ├── coding/                    # 공유 코딩 문제
-│   │   └── commerce/
-│   │       ├── CommerceApplication.java
-│   │       ├── api/                   # 상품·주문·결제 Controller
-│   │       ├── domain/
-│   │       │   ├── catalog/           # 상품·옵션·재고
-│   │       │   ├── order/             # 주문 생성·조회
-│   │       │   └── payment/           # 결제·Reader/Saver·PG 계약
-│   │       ├── infra/
-│   │       │   ├── db/                # JPA Entity·Repository·구현·fixture
-│   │       │   └── pg/                # 가짜 PG 원장
-│   │       └── support/               # 업무 오류
-│   ├── main/resources/
-│   │   ├── application.properties
-│   │   └── static/                    # FORM FE·개발 도구·로컬 SVG
-│   └── test/java/challenge/
-│       ├── coding/
-│       └── commerce/                  # 제공 HTTP 환경·Day6 계약
-├── legacy/
-│   ├── main/                         # 기존 예약·결제·HTTP 원본
-│   └── test/                         # 기존 계약·부하 실행 소스
+challenge-120/
+├── coding/                 # Java 코딩 풀이·JUnit 테스트. Spring/DB 의존성 없음
+│   ├── build.gradle.kts
+│   └── src/{main,test}/java/challenge/coding/
+├── commerce/               # FORM의 Spring Boot·JPA·API·화면
+│   ├── build.gradle.kts
+│   └── src/{main,test}/...
+├── docs/exercises/         # C001-…md, B006-…md 등 과제별 문서
+├── docs/learning-guide.md  # 현재 운영 원칙
 ├── requests/payment.http
-├── tools/                            # 현재/과거 HTTP·DB·부하 실행 도구
-├── .run/                             # Commerce·Coding·Legacy 실행 구성
-└── docs/                             # 주제별 과제·초기 시도·이전 설정
+├── tools/payment-flow.py
+└── .run/                   # 현재 모듈·과제에 맞는 IntelliJ 실행 구성
 ```
 
-`Controller → Service → Reader/Saver·업무 객체 → 저장소 계약`으로 연결하고 JPA와 PG 구현은 `infra`가 맡는다. 업무 상태는 공유 JPA Entity가 소유하고 트랜잭션은 Service가 소유한다. Entity는 Service·Reader·Saver·Validator와 API 응답 매퍼까지 전달할 수 있는 유일한 infra 예외다. JpaRepository·EntityManager·쿼리 구현은 infra에 격리한다. 공개 스토어 API의 JSON 요청·응답은 `api/request`, `api/response`에 둔다. `CreateOrderCommand`와 주문·결제를 조합한 `OrderDetailsResult`는 `domain/order`에 두며 API 응답으로 직접 반환하지 않는다. 단일 ID 조회는 scalar를 유지하고 검색 조건이 생기면 독립 Query로 묶는다. 개발용 PG 제어 API의 기존 infra 직접 참조는 별도 실습 도구 경계로 남겨 둔다. Reader/Saver는 조합 가능한 구체 클래스이며 불필요한 interface/Impl 쌍은 만들지 않는다. 주문 목록의 결제 조회는 일괄 조회한다. Product·PurchaseOrder·Payment 복제 모델과 Entity 왕복 변환은 제거했다. ProductResult는 상품·옵션 Entity를 묶으며, OrderDetailsResult는 주문 Entity와 결제 요약을 담는다. managed PaymentEntity의 변경은 트랜잭션 종료 시 반영하므로 별도 재조회·복사 저장은 하지 않는다. OSIV=false를 유지하며 상품·주문 목록은 각각 SQL2회로 응답까지 완성한다.
+기존 IntelliJ 프로젝트 `/Users/justin/IdeaProjects/my-project/study/challenge-120`를 계속 사용한다. 날짜별 모듈·새 worktree는 만들지 않는다. 새 대화도 이 원래 checkout을 공유한다.
 
-활성 앱에는 `reservation/lab`이 없다. [legacy](legacy/README.md)는 과거 학습 원본을 삭제하지 않고 실행 가능하게 보존한 소스 세트다. **하나의 Gradle 프로젝트** 안에 있으며 별도 모듈이나 앱 의존성이 아니다. 현재 상품·주문은 예약 클래스의 이름만 바꾼 모델이 아니다. 종료한 예전 Commerce Lab은 복원하지 않았다.
+## 실행과 검사
 
-## Workflow
-
-1. `day/NNN` 브랜치를 생성한다.
-2. 그날의 학습 또는 구현을 진행한다.
-3. commit하고 Pull Request를 생성한다.
-4. 필요한 리뷰 및 수정을 진행한다.
-5. Squash and Merge한다.
-6. main에는 원칙적으로 하루당 하나의 squash commit을 남긴다.
-
-이번 전환 PR이 병합된 이후부터 적용한다. 과거 Git history는 다시 쓰지 않는다. 다음 날에는 최신 main에서 `day/007`처럼 시작하고 같은 시스템을 수정한다. PR에 학습 주제·변경·검증·남은 질문을 남긴다.
-
-## Principles
-
-- 날짜는 디렉터리가 아니라 Git history로 관리한다.
-- 디렉터리는 코드의 역할과 주제를 기준으로 구성한다.
-- 간단한 코딩 테스트 문제는 기존 프로젝트에 파일과 테스트만 추가한다.
-- Pull Request를 하루의 학습 기록으로 사용한다.
-- 날짜별·문제별 Gradle 프로젝트와 모듈을 추가하지 않는다.
-- 학습 원본과 초기 시도는 보존하고, 사용자 과제의 답안을 미리 채우지 않는다.
-
-## Build and Test
+모든 명령은 이 폴더에서 실행한다. Java21과 기존 Wrapper를 사용한다.
 
 ```sh
-./gradlew assemble testClasses legacyTestsClasses # 현재·과거 컴파일과 실행 배포본
-./gradlew commerceInfrastructureTest              # 커머스 제공 환경 9개
-./gradlew ciTest                                  # 위 9개 + 기존 필수 15개
-./gradlew test --tests 'challenge.commerce.Payment*' # Day6 상태·알림 5개
-./gradlew priceExperiment                         # Day7 현재 가격 변경 동작 관찰
-./gradlew test --tests '*PriceConsentTest'         # Day7 Backend 공개 8개
-./gradlew test --tests '*SizeSearchTest'           # Day7 Coding 공개 9개
-./gradlew test --tests 'challenge.coding.*'
-./gradlew test legacyTest --continue              # 현재·과거 기본 공개 계약 전체
-./gradlew build --continue                        # 위 계약 + 패키징·포맷
-./gradlew test -Pminimum                          # 기존 축소 태그 유지
-./gradlew commerceInfrastructureTest -Pmysql      # Docker 필요, 테스트용 MySQL
-./gradlew test -Pmysql --tests 'challenge.commerce.Payment*'
-./gradlew legacyTest --tests 'challenge.payment.*'
-./gradlew legacyTest --tests 'challenge.lab.*'
-./gradlew spotlessApply spotlessCheck
-python3 tools/payment-flow.py                    # 실행 중인 서버에 요청·알림
+./gradlew :coding:test --tests '*SizeSearchTest'      # C007
+./gradlew :coding:test                               # 코딩 전체
+./gradlew :commerce:run                              # FE/API 함께 실행
+./gradlew :commerce:test --tests '*PriceConsentTest'  # B007
+./gradlew :commerce:priceExperiment                  # 가격 변경 관찰
+./gradlew :commerce:test --tests 'challenge.commerce.Payment*' # B006
+./gradlew ciTest                                     # 완료 코딩28 + 커머스18
+./gradlew test --continue                            # 모든 현재 과제; 미완성 실패도 표시
+./gradlew assemble                                  # 두 모듈 컴파일·커머스 실행 배포본
+./gradlew build --continue                           # 전체 테스트·패키징·포맷
+./gradlew spotlessCheck
+./gradlew :commerce:ciTest -Pmysql                    # Docker 필요, 선택 검사
 ```
 
-Day7 준비 검증: 컴파일·assemble 성공, H2 커머스 제공 환경9/9·기존 필수15/15·Day6 상태/알림5/5 통과. 가격 관찰 실험1/1 실행 성공. 새 과제는 가격 확인4/8 통과·4개 의도된 실패, C007은9/16 해답 설명 후 사용자 구현9/9 통과로 갱신했다. 전체·MySQL 검사를 이번에 다시 실행하지 않았고 전체 build 성공으로 표시하지 않는다. `make check-study`의 필수 CI 검사는 유지한다.
+IntelliJ 구성: `C007 - SizeSearch`, `B007 - Price Consent`, `B007 - Observe`, `Commerce - Server`, `Commerce - CI`, `Coding - All`.
 
-## 학습 기록
+- 스토어: <http://127.0.0.1:18086/>
+- 개발용 PG: <http://127.0.0.1:18086/dev.html>
+- H2·가짜 PG는 메모리 기반이며 서버 재시작 시 초기화된다. 회원·실제 결제·배송은 없다.
 
-- [Day 7 할인 종료 가격 실험·사이즈 탐색](docs/exercises/price-consent.md)
-- [Day 6 코딩·커머스 결제](docs/exercises/payment-http.md)
-- [Phase·시간·평가/튜터 원칙](docs/learning-guide.md) · [기존 장부](ledger.md)
-- [이전 예약·결제 실습 실행](legacy/README.md)
-- [전환 PR 제목·본문](migration-pr.md)
+## API와 업무 객체 경계
 
-기본90분/Minimum45분, Weekly Review·Benchmark·사용자 선행 시도 원칙은 유지한다. 백엔드의 맥락은 커머스로 이어가되 매일의 필수 범위는 해당 과제에서 제한한다.
+HTTP Request/Response는 `commerce/.../api`에 둔다. Command·Query·Result는 업무 입력·조합 결과로 필요한 경우에만 만든다. JPA Entity는 Service·Reader·Saver·Validator와 API 응답 매퍼가 공유할 수 있는 유일한 infra 예외다. Entity 복제 모델과 왕복 변환은 만들지 않는다. JpaRepository·EntityManager·쿼리·DB 설정은 infra에 유지한다.
+
+트랜잭션은 Service가 소유하고 관리 중인 Entity 변경을 반영한다. OSIV=false이며 상품/옵션·주문/결제의 목록 조회는 각각 SQL2회다. JSON은 Entity를 직접 노출하지 않고 DTO로 변환한다. 개발용 PG 제어 API의 직접 infra 참조는 기존 실습 도구 범위다.
+
+## 현재 검증과 남은 과제
+
+2026-09-16: 모듈 컴파일·패키징과 필수 CI는 통과. Coding 전체66개 중62개 통과·기존 C004 네 개 실패. B007은 사용자 가격 비교 구현에 요청받은409 예외 연결을 AI가 적용한 뒤8/8 통과했다. 사용자가 작성한 가격 조건과 빈 ProductValidator는 보존했다. 전체 build 성공으로 표시하지 않는다.
+
+예전 CI의 C00510개는 유지하고 완료된 C006·C007각9개를 추가했다. 삭제 요청된 legacy 결제 검사5개는 함께 제거했으며 활성 커머스18개(제공 환경9·결제5·응답2·조회2)를 필수 검사로 실행한다. 미완성 과제는 전체 test에서 계속 드러난다.
+
+## 운영
+
+`day/NNN → PR → Squash and Merge`. 날짜는 Git·학습 기록으로 관리한다. 기본90분/Minimum45분과 Phase·주간 리뷰는 [학습 가이드](docs/learning-guide.md)를 따른다.
+
+사용자 요청으로 `legacy/`, 종료한 B001~B005 실행 문서, 이전 구조 이전 PR 초안, 오래된 scaffold·부하 도구를 삭제했다. 현재 과제와 학습 세션·장부는 보존하며 과거 자료 링크는 필요할 때 당시 Git 커밋으로 연결한다. 제거한 레거시를 후속 과제에서 자동 복원하지 않는다.

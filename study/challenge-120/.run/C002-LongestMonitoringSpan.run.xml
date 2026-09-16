@@ -1,12 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Commerce - Server" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="C002 - LongestMonitoringSpan" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
       <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="" />
+      <option name="scriptParameters" value="--tests '*LongestMonitoringSpanTest'" />
       <option name="taskNames">
         <list>
-          <option value=":commerce:run" />
+          <option value=":coding:test" />
         </list>
       </option>
     </ExternalSystemSettings>

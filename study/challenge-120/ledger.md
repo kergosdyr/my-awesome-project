@@ -6,13 +6,14 @@
 
 | 날짜 / Day | 문제 식별자 | 발행 / 제출 상태 | 실제 시간 | 결과 근거 |
 | --- | --- | --- | --- | --- |
-| 2026-09-09 / 1 | C001 / B001 | C001 과정 평가·해답 학습 / B001 H2 기능 통과·락 개념 학습 중 | 약90분(자기보고) | [문제·조건](../sessions/2026-09-09.md), [실습](docs/exercises/reservation-basics.md) |
-| 2026-09-10 / 2 | C002 / B002 | 일일 마감 / C002 기본8/8·O(n) 해답 학습 / B002 수정 후 H2 기능11/11+인프라1/1·독립 설명 미확인 | 데이터 없음 | [세션](../sessions/2026-09-10.md), [실습](docs/exercises/reservation-cancellation.md) |
-| 2026-09-11 / 3 | C003(괄호 검증으로 교체) / B003 | 초기 MySQL18/19·k6 1,000VU 통과 / 9월12일 현재 C003 Java9/9·낙관적 확장 H2·MySQL 각각14/14 확인, 확장판 NOT_FOUND 구현 확인 / 독립성·최종 설명 미평가 | 데이터 없음 | [세션](../sessions/2026-09-11.md), [실습](docs/exercises/reservation-concurrency.md) |
-| 2026-09-12 / 4 | C004 / B004 | 사용자 요청으로 발행 / C004 정답 설명 학습 / B004 고정3회 annotation 재시도 제출·MySQL17/17 / 요청별 상한·새 진입점 요구 철회 / 고정3회 기능 확인·단일/분산 경합 부하 비교 완료(낮은 경합에서 최종실패154→16·추가시도1.49%), Retry 범위 마무리·트랜잭션 독립 설명 미확인 | 데이터 없음 | [세션](../sessions/2026-09-12.md), [실습](docs/exercises/maintenance-windows.md) |
-| 2026-09-13 / 5 | C005 / B005 | C005 해답 학습 후 사용자 재작성·return 수정, 공개10/10 통과·O(n) 확인 / B005 오늘 범위 H2·MySQL 핵심각6/6·인프라각5/5 통과 / 범위 밖 알림·금액변경·PROCESSING은 평가 제외 / 독립 설계 설명 대기 / 독립 Pass 미확인 | 데이터 없음 | [세션](../sessions/2026-09-13.md), [실습](docs/exercises/payment-recovery.md) |
-| 2026-09-14 / 6 | C006 / B006 | C006 마감: 최초 사용자 풀이9/9·O(n) 시간/O(n) 공간 / AI 횟수 배열 풀이 학습 후 현재 코드9/9·O(1) 공간·원문 순회와 알파벳순 혼동 교정 / 독립 회상 미검증 / B006 사용자 구현 보존·9/15 원본 재검증5/5·독립 설명 미평가 | 데이터 없음 | [세션](../sessions/2026-09-14.md), [실습](docs/exercises/payment-http.md) |
-| 2026-09-15 / 7 | C007 / B007 | C007 해답 설명 후 사용자 구현9/9·O(log n) 시간/O(1) 공간·코딩 마감 / B007 준비 완료·4/8 통과(미구현4실패)·진행 대기 / 독립 이진 탐색 해결로 평가하지 않음 | 데이터 없음 | [과제](docs/exercises/price-consent.md), [세션](../sessions/2026-09-15.md) |
+| 2026-09-09 / 1 | C001 / B001 | C001 과정 평가·해답 학습 / B001 H2 기능 통과·락 개념 학습 중 | 약90분(자기보고) | [문제·조건](../sessions/2026-09-09.md), [실습](https://github.com/kergosdyr/my-awesome-project/blob/d5833bedc6d3e11a8aa3233d91d4223b93e1bfaf/study/challenge-120/docs/exercises/reservation-basics.md) |
+| 2026-09-10 / 2 | C002 / B002 | 일일 마감 / C002 기본8/8·O(n) 해답 학습 / B002 수정 후 H2 기능11/11+인프라1/1·독립 설명 미확인 | 데이터 없음 | [세션](../sessions/2026-09-10.md), [실습](https://github.com/kergosdyr/my-awesome-project/blob/d5833bedc6d3e11a8aa3233d91d4223b93e1bfaf/study/challenge-120/docs/exercises/reservation-cancellation.md) |
+| 2026-09-11 / 3 | C003(괄호 검증으로 교체) / B003 | 초기 MySQL18/19·k6 1,000VU 통과 / 9월12일 현재 C003 Java9/9·낙관적 확장 H2·MySQL 각각14/14 확인, 확장판 NOT_FOUND 구현 확인 / 독립성·최종 설명 미평가 | 데이터 없음 | [세션](../sessions/2026-09-11.md), [실습](https://github.com/kergosdyr/my-awesome-project/blob/d5833bedc6d3e11a8aa3233d91d4223b93e1bfaf/study/challenge-120/docs/exercises/reservation-concurrency.md) |
+| 2026-09-12 / 4 | C004 / B004 | 사용자 요청으로 발행 / C004 정답 설명 학습 / B004 고정3회 annotation 재시도 제출·MySQL17/17 / 요청별 상한·새 진입점 요구 철회 / 고정3회 기능 확인·단일/분산 경합 부하 비교 완료(낮은 경합에서 최종실패154→16·추가시도1.49%), Retry 범위 마무리·트랜잭션 독립 설명 미확인 | 데이터 없음 | [세션](../sessions/2026-09-12.md), [실습](https://github.com/kergosdyr/my-awesome-project/blob/d5833bedc6d3e11a8aa3233d91d4223b93e1bfaf/study/challenge-120/docs/exercises/maintenance-windows.md) |
+| 2026-09-13 / 5 | C005 / B005 | C005 해답 학습 후 사용자 재작성·return 수정, 공개10/10 통과·O(n) 확인 / B005 오늘 범위 H2·MySQL 핵심각6/6·인프라각5/5 통과 / 범위 밖 알림·금액변경·PROCESSING은 평가 제외 / 독립 설계 설명 대기 / 독립 Pass 미확인 | 데이터 없음 | [세션](../sessions/2026-09-13.md), [실습](https://github.com/kergosdyr/my-awesome-project/blob/d5833bedc6d3e11a8aa3233d91d4223b93e1bfaf/study/challenge-120/docs/exercises/payment-recovery.md) |
+| 2026-09-14 / 6 | C006 / B006 | C006 마감: 최초 사용자 풀이9/9·O(n) 시간/O(n) 공간 / AI 횟수 배열 풀이 학습 후 현재 코드9/9·O(1) 공간·원문 순회와 알파벳순 혼동 교정 / 독립 회상 미검증 / B006 사용자 구현 보존·9/15 원본 재검증5/5·독립 설명 미평가 | 데이터 없음 | [세션](../sessions/2026-09-14.md), [실습](docs/exercises/B006-payment-notification.md) |
+| 2026-09-15 / 7 | C007 / B007 | C007 해답 설명 후 사용자 구현9/9·O(log n) 시간/O(1) 공간·코딩 마감 / B007 준비 완료·4/8 통과(미구현4실패)·진행 대기 / 독립 이진 탐색 해결로 평가하지 않음 | 데이터 없음 | [과제](docs/exercises/B007-price-consent.md), [세션](../sessions/2026-09-15.md) |
+| 2026-09-16 / 8 | C007 / B007 계속 | 새 문제를 추가하지 않음 / C007 사용자 구현9/9 확인·AI 해답 후 결과 / B007 가격 비교 사용자 제출·AI가 요청받은409 예외 연결 후8/8 통과·단일 품목 주문 모델의 한계 확인 / 제공 FORM 계층 정리는 사용자 B007 성과와 분리 | 데이터 없음 | [과제](docs/exercises/B007-price-consent.md), [세션](../sessions/2026-09-16.md) |
 
 ## Weakness Ledger
 
