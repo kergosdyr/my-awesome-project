@@ -22,4 +22,24 @@ public class ProductOptionEntity {
         this.size = size;
         this.stock = stock;
     }
+
+    public long id() {
+        return id;
+    }
+
+    public long productId() {
+        return productId;
+    }
+
+    public String color() {
+        return color;
+    }
+
+    public String size() {
+        return size;
+    }
+
+    public int stock() {
+        return stock;
+    }
 }

@@ -1,0 +1,64 @@
+package challenge.commerce;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import challenge.commerce.infra.db.ProductEntity;
+import challenge.commerce.infra.db.ProductOptionEntity;
+import jakarta.persistence.EntityManagerFactory;
+import org.hibernate.SessionFactory;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+/** OSIV=false에서 HTTP 응답 변환까지 마친 뒤의 SQL 수를 검사한다. */
+class EntityReadBoundaryTest extends CommerceHttpSupport {
+    @Autowired
+    EntityManagerFactory entityManagerFactory;
+
+    @Test
+    void catalogQueryCountStaysFlatWhenMoreEntitiesAreReturned() throws Exception {
+        var statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        boolean enabled = statistics.isStatisticsEnabled();
+        statistics.setStatisticsEnabled(true);
+        try {
+            statistics.clear();
+            var small = request("GET", "/api/products", "");
+            assertEquals(200, small.code());
+            assertEquals(3, small.body().size());
+            assertEquals(2, statistics.getPrepareStatementCount());
+            for (int id = 4; id <= 13; id++) {
+                products.save(new ProductEntity(id, "FORM", "Extra", "Description", "TOP", 1000, "/images/tee.svg"));
+                options.save(new ProductOptionEntity(id * 100L, id, "White", "M", 10));
+            }
+            statistics.clear();
+            var large = request("GET", "/api/products", "");
+            assertEquals(200, large.code());
+            assertEquals(13, large.body().size());
+            assertEquals(1, large.body().get(12).path("options").size());
+            assertEquals(2, statistics.getPrepareStatementCount(), "상품·옵션 일괄 조회 이후 응답 변환에서 SQL 추가 없음");
+        } finally {
+            statistics.setStatisticsEnabled(enabled);
+        }
+    }
+
+    @Test
+    void ordersAndPaymentsRemainTwoBatchReads() throws Exception {
+        var statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        boolean enabled = statistics.isStatisticsEnabled();
+        statistics.setStatisticsEnabled(true);
+        try {
+            assertEquals(200, pay(order()).code());
+            statistics.clear();
+            assertEquals(1, request("GET", "/api/orders", "").body().size());
+            assertEquals(2, statistics.getPrepareStatementCount());
+            order();
+            order();
+            statistics.clear();
+            var result = request("GET", "/api/orders", "");
+            assertEquals(200, result.code());
+            assertEquals(3, result.body().size());
+            assertEquals(2, statistics.getPrepareStatementCount(), "주문 수만큼 결제를 개별 조회하지 않는다");
+        } finally {
+            statistics.setStatisticsEnabled(enabled);
+        }
+    }
+}

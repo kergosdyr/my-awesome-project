@@ -32,7 +32,7 @@ Day5의 응답 유실·PG 승인 후 DB 롤백을 다시 출제하지 않는다.
 | 양수 가격 필수 검증, 기존 주문 가격 기록 | 기존 주문·재고 흐름에 규칙을 연결하는 방법 |
 | 실제 HTTP 서버·H2와 가격 변경·PG 관찰 테스트 | 결과와 이유를 설명하고 작은 변형 하나 예상 |
 
-진입점은 [OrderService.java](../../src/main/java/challenge/commerce/domain/order/OrderService.java)의 기존 `create(CreateOrder)`다. `CreateOrder`에는 `optionId`, `quantity`, `displayedUnitPrice`가 있다. 메서드·처리 순서를 추가로 지정하지 않으며, 관련 domain 객체로 규칙을 옮겨도 된다. **주문 생성 본문은 이전 동작 그대로이며 가격 확인은 TODO다.**
+진입점은 [OrderService.java](../../src/main/java/challenge/commerce/domain/order/OrderService.java)의 기존 `create(CreateOrderCommand)`다. `CreateOrderCommand`에는 `optionId`, `quantity`, `displayedUnitPrice`가 있다. 메서드·처리 순서를 추가로 지정하지 않으며, 관련 domain 객체로 규칙을 옮겨도 된다. **주문 생성 본문은 이전 동작 그대로이며 가격 확인은 TODO다.**
 
 HTTP 입력 예:
 

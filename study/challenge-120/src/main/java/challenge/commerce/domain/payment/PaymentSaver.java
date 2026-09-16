@@ -1,5 +1,6 @@
 package challenge.commerce.domain.payment;
 
+import challenge.commerce.infra.db.PaymentEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,12 +13,7 @@ public class PaymentSaver {
         this.payments = payments;
     }
 
-    public Payment create(long orderId, String key, long amount, Payment.Status status, String approvalId) {
-        return payments.create(new Payment(null, orderId, key, amount, status, approvalId));
-    }
-
-    /** 순수 도메인 객체의 변경 상태를 기존 DB 행에 반영하는 영속화 경계. 새 행을 만들지 않는다. */
-    public void saveChanges(Payment payment) {
-        payments.update(payment);
+    public PaymentEntity create(long orderId, String key, long amount, PaymentEntity.Status status, String approvalId) {
+        return payments.create(new PaymentEntity(null, orderId, key, amount, status, approvalId));
     }
 }

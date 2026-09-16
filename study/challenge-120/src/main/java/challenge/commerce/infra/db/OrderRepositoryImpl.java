@@ -1,6 +1,6 @@
 package challenge.commerce.infra.db;
 
-import challenge.commerce.domain.order.*;
+import challenge.commerce.domain.order.OrderRepository;
 import java.util.*;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
@@ -14,19 +14,17 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public PurchaseOrder create(PurchaseOrder order) {
-        return orders.save(OrderEntity.from(order)).toDomain();
+    public OrderEntity create(OrderEntity order) {
+        return orders.save(order);
     }
 
     @Override
-    public Optional<PurchaseOrder> findById(long id) {
-        return orders.findById(id).map(OrderEntity::toDomain);
+    public Optional<OrderEntity> findById(long id) {
+        return orders.findById(id);
     }
 
     @Override
-    public List<PurchaseOrder> findAll() {
-        return orders.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
-                .map(OrderEntity::toDomain)
-                .toList();
+    public List<OrderEntity> findAll() {
+        return orders.findAll(Sort.by(Sort.Direction.DESC, "id"));
     }
 }

@@ -2,13 +2,13 @@ package challenge.commerce;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import challenge.commerce.domain.payment.Payment;
+import challenge.commerce.infra.db.PaymentEntity;
 import org.junit.jupiter.api.Test;
 
 class PaymentStateTest {
     @Test
     void approvalAndRepeatPreservePaymentIdentity() {
-        var payment = new Payment(10L, 20, "20", 129000, Payment.Status.PENDING, null);
+        var payment = new PaymentEntity(10L, 20, "20", 129000, PaymentEntity.Status.PENDING, null);
         payment.confirmApproval("approval-20");
         payment.confirmApproval("approval-20");
         assertTrue(payment.isPaid());

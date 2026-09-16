@@ -1,6 +1,5 @@
 package challenge.commerce.infra.db;
 
-import challenge.commerce.domain.order.PurchaseOrder;
 import jakarta.persistence.*;
 import java.time.Instant;
 
@@ -22,22 +21,52 @@ public class OrderEntity {
 
     protected OrderEntity() {}
 
-    static OrderEntity from(PurchaseOrder o) {
-        var e = new OrderEntity();
-        e.id = o.id();
-        e.optionId = o.optionId();
-        e.productName = o.productName();
-        e.optionName = o.optionName();
-        e.image = o.image();
-        e.unitPrice = o.unitPrice();
-        e.quantity = o.quantity();
-        e.totalAmount = o.totalAmount();
-        e.createdAt = o.createdAt();
-        return e;
+    public static OrderEntity place(ProductEntity product, ProductOptionEntity option, int quantity) {
+        var order = new OrderEntity();
+        order.optionId = option.id();
+        order.productName = product.name();
+        order.optionName = option.color() + " / " + option.size();
+        order.image = product.image();
+        order.unitPrice = product.price();
+        order.quantity = quantity;
+        order.totalAmount = Math.multiplyExact(product.price(), quantity);
+        order.createdAt = Instant.now();
+        return order;
     }
 
-    PurchaseOrder toDomain() {
-        return new PurchaseOrder(
-                id, optionId, productName, optionName, image, unitPrice, quantity, totalAmount, createdAt);
+    public Long id() {
+        return id;
+    }
+
+    public long optionId() {
+        return optionId;
+    }
+
+    public String productName() {
+        return productName;
+    }
+
+    public String optionName() {
+        return optionName;
+    }
+
+    public String image() {
+        return image;
+    }
+
+    public long unitPrice() {
+        return unitPrice;
+    }
+
+    public int quantity() {
+        return quantity;
+    }
+
+    public long totalAmount() {
+        return totalAmount;
+    }
+
+    public Instant createdAt() {
+        return createdAt;
     }
 }

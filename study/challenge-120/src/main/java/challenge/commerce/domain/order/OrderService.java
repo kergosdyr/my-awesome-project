@@ -2,14 +2,14 @@ package challenge.commerce.domain.order;
 
 import challenge.commerce.domain.catalog.ProductReader;
 import challenge.commerce.domain.catalog.StockAllocator;
-import challenge.commerce.support.BusinessException;
+import challenge.commerce.infra.db.OrderEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * B007 — 할인 종료 1초 뒤의 주문. Backend 45분 / Minimum 20분.
  * 화면에서 티셔츠 29,000원을 봤는데 주문 직전에 판매 가격이 39,000원으로 바뀌었다.
- * 입력 CreateOrder(optionId, quantity, displayedUnitPrice): 마지막 값은 화면에서 본 개당 가격이다.
+ * 입력 CreateOrderCommand(optionId, quantity, displayedUnitPrice): 마지막 값은 화면에서 본 개당 가격이다.
  * 서버는 이 값을 판매 가격으로 믿어서는 안 된다. 수량 1~5, 양수 가격, 순차 요청만 다룬다.
  * 가격 인상: HTTP 409와 이해할 수 있는 안내, 주문·재고 변화 없음.
  * 가격 동일: 기존처럼 주문 생성. 가격 인하: 현재 가격으로 주문 또는 409 재확인 중 직접 선택한다.
@@ -37,18 +37,10 @@ public class OrderService {
     }
 
     @Transactional
-    public PurchaseOrder create(CreateOrder command) {
+    public OrderEntity create(CreateOrderCommand command) {
         // TODO B007: 기존 주문 흐름에 가격 확인 규칙을 연결한다. 구현 위치와 방식은 직접 결정한다.
         var product = products.readForOption(command.optionId());
         stock.allocate(command.optionId(), command.quantity());
         return orders.create(product, command.optionId(), command.quantity());
-    }
-
-    public record CreateOrder(long optionId, int quantity, long displayedUnitPrice) {
-        public CreateOrder {
-            if (optionId <= 0 || quantity < 1 || quantity > 5 || displayedUnitPrice <= 0) {
-                throw BusinessException.invalid("옵션과 수량(1~5개)을 확인해 주세요.");
-            }
-        }
     }
 }

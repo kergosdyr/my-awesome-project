@@ -1,3 +1,5 @@
+> 2026-09-16 사용자 정정: JPA Entity는 infra 격리의 유일한 예외이며 Service·Reader·Saver·Validator 등 업무 객체 전체가 공유한다. 순수 도메인 복제 객체·왕복 변환을 제거한다. JpaRepository·EntityManager·쿼리·DB 설정은 infra에 남기고 HTTP 요청·응답은 API DTO로 분리한다. 이전의 Entity와 업무 객체 완전 분리 지시보다 이 규칙을 우선한다.
+
 > 최신 프로젝트 방향(2026-09-14 사용자 정정): 백엔드는 무신사 같은 커머스 서비스 하나를 계속 발전시킨다. Ticketmaster·콘서트 예매 방향은 철회했다. 코딩 문제는 별도로 유지한다. 상품·옵션→주문→결제→주문 결과 조회가 연결 목표이며, 과거 예약 실습은 보존 자료다. 현재 구조 migration에서 업무 로직을 변경하지 않고 실제 커머스 연결은 후속 기능 PR의 작은 계약으로 진행한다. JPA 저장소/쿼리/DB 설정과 PG 구현은 infra, Service·Reader/Saver·업무 규칙은 domain, HTTP는 api를 기준으로 한다. 자세한 범위는 [현재 README](../README.md)를 따른다. 이 정정은 아래 과거 도메인 유지 지시보다 우선하며 삭제된 Commerce Lab의 복원 요청이 아니다.
 
 > 현재 운영: [README](../README.md)의 `day/NNN → PR → Squash and Merge`가 구조·학습 기록의 기준이다. 아래 과거 Day 명칭은 학습 식별자이며 디렉터리를 만들라는 지시가 아니다. 기존 평가·시간·사용자 정정은 유지한다.

@@ -13,7 +13,7 @@ public class CatalogService {
     }
 
     @Transactional(readOnly = true)
-    public List<Product> list() {
+    public List<ProductResult> list() {
         return products.readAll();
     }
 }

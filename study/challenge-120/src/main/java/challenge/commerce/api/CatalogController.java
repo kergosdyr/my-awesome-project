@@ -1,5 +1,6 @@
 package challenge.commerce.api;
 
+import challenge.commerce.api.response.ProductResponse;
 import challenge.commerce.domain.catalog.*;
 import java.util.List;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +15,7 @@ public class CatalogController {
     }
 
     @GetMapping
-    public List<Product> list() {
-        return catalog.list();
+    public List<ProductResponse> list() {
+        return catalog.list().stream().map(ProductResponse::from).toList();
     }
 }

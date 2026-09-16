@@ -1,5 +1,6 @@
 package challenge.commerce.domain.order;
 
+import challenge.commerce.infra.db.OrderEntity;
 import challenge.commerce.support.BusinessException;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -14,11 +15,11 @@ public class OrderReader {
         this.orders = orders;
     }
 
-    public PurchaseOrder read(long id) {
+    public OrderEntity read(long id) {
         return orders.findById(id).orElseThrow(() -> BusinessException.notFound("주문을 찾을 수 없습니다."));
     }
 
-    public List<PurchaseOrder> readAll() {
+    public List<OrderEntity> readAll() {
         return orders.findAll();
     }
 }

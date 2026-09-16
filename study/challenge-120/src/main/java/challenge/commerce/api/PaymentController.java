@@ -1,5 +1,6 @@
 package challenge.commerce.api;
 
+import challenge.commerce.api.response.PaymentResponse;
 import challenge.commerce.domain.payment.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -15,10 +16,10 @@ public class PaymentController {
     }
 
     @PostMapping("/api/orders/{id}/payments")
-    public ResponseEntity<PaymentResult> pay(@PathVariable("id") long id) {
+    public ResponseEntity<PaymentResponse> pay(@PathVariable("id") long id) {
         var result = payments.pay(id);
         return ResponseEntity.status(result.status() == PaymentResult.Status.PAID ? 200 : 202)
-                .body(result);
+                .body(PaymentResponse.from(result));
     }
 
     @PostMapping("/api/payments/notifications")

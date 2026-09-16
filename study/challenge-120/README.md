@@ -27,7 +27,7 @@ cd study/challenge-120
 
 **Day 7은 할인 종료 직후의 가격 확인 실험이다.** [과제·예상 질문·실행](docs/exercises/price-consent.md)에서 시작한다. 화면 가격 전달과 HTTP 재현 환경은 제공했으며, 가격 변경 판단은 사용자 구현 대상으로 남아 있다. 원래 IntelliJ 프로젝트의 `day/007`에서 진행한다.
 
-Day6 사용자 `Payment.confirmApproval`·`PaymentService.onNotification` 구현은 보존했고 상태·알림5/5, C006 9/9 통과를 확인했다. 자료 없는 설명·독립 회상 성공은 별도 미검증이다.
+Day6 사용자 `PaymentEntity.confirmApproval`·`PaymentService.onNotification` 구현은 보존했고 상태·알림5/5, C006 9/9 통과를 확인했다. 자료 없는 설명·독립 회상 성공은 별도 미검증이다.
 
 ## 구조
 
@@ -63,7 +63,7 @@ study/challenge-120/
 └── docs/                             # 주제별 과제·초기 시도·이전 설정
 ```
 
-`Controller → Service → Reader/Saver·업무 객체 → 저장소 계약`으로 연결하고 JPA와 PG 구현은 `infra`가 맡는다. 업무 상태는 Payment가 소유하고 트랜잭션은 Service가 소유한다. Reader/Saver는 조합 가능한 구체 클래스이며 불필요한 interface/Impl 쌍은 만들지 않는다. 주문 목록의 결제 조회는 일괄 조회한다.
+`Controller → Service → Reader/Saver·업무 객체 → 저장소 계약`으로 연결하고 JPA와 PG 구현은 `infra`가 맡는다. 업무 상태는 공유 JPA Entity가 소유하고 트랜잭션은 Service가 소유한다. Entity는 Service·Reader·Saver·Validator와 API 응답 매퍼까지 전달할 수 있는 유일한 infra 예외다. JpaRepository·EntityManager·쿼리 구현은 infra에 격리한다. 공개 스토어 API의 JSON 요청·응답은 `api/request`, `api/response`에 둔다. `CreateOrderCommand`와 주문·결제를 조합한 `OrderDetailsResult`는 `domain/order`에 두며 API 응답으로 직접 반환하지 않는다. 단일 ID 조회는 scalar를 유지하고 검색 조건이 생기면 독립 Query로 묶는다. 개발용 PG 제어 API의 기존 infra 직접 참조는 별도 실습 도구 경계로 남겨 둔다. Reader/Saver는 조합 가능한 구체 클래스이며 불필요한 interface/Impl 쌍은 만들지 않는다. 주문 목록의 결제 조회는 일괄 조회한다. Product·PurchaseOrder·Payment 복제 모델과 Entity 왕복 변환은 제거했다. ProductResult는 상품·옵션 Entity를 묶으며, OrderDetailsResult는 주문 Entity와 결제 요약을 담는다. managed PaymentEntity의 변경은 트랜잭션 종료 시 반영하므로 별도 재조회·복사 저장은 하지 않는다. OSIV=false를 유지하며 상품·주문 목록은 각각 SQL2회로 응답까지 완성한다.
 
 활성 앱에는 `reservation/lab`이 없다. [legacy](legacy/README.md)는 과거 학습 원본을 삭제하지 않고 실행 가능하게 보존한 소스 세트다. **하나의 Gradle 프로젝트** 안에 있으며 별도 모듈이나 앱 의존성이 아니다. 현재 상품·주문은 예약 클래스의 이름만 바꾼 모델이 아니다. 종료한 예전 Commerce Lab은 복원하지 않았다.
 

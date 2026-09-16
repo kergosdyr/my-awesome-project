@@ -42,7 +42,7 @@ Day5의 좁은 계약 통과를 결제 시스템 전체 완료로 보지 않는�
 
 ### 이번에 할 일은 두 가지입니다
 
-1. [Payment.confirmApproval](../../src/main/java/challenge/commerce/domain/payment/Payment.java): 이 결제의 상태를 **결제 완료(PAID)**로 바꾸고, 전달받은 승인 번호를 기록합니다. 결제 ID·주문 ID·금액 등 다른 값은 유지합니다.
+1. [PaymentEntity.confirmApproval](../../src/main/java/challenge/commerce/infra/db/PaymentEntity.java): 이 결제의 상태를 **결제 완료(PAID)**로 바꾸고, 전달받은 승인 번호를 기록합니다. 결제 ID·주문 ID·금액 등 다른 값은 유지합니다.
 2. [PaymentService.onNotification](../../src/main/java/challenge/commerce/domain/payment/PaymentService.java): 알림의 주문 번호로 기존 결제를 찾습니다. 있으면 그 결제에 승인을 반영하고 저장한 뒤 `true`를 반환합니다. 없으면 아무것도 만들거나 바꾸지 않고 `false`를 반환합니다.
 
 `true`는 **“우리 쪽에서 해당 결제의 승인 알림을 받아들였다”**는 뜻입니다. 결제사가 승인했다고 말했더라도 우리 쪽에 기록이 없으면 `false`입니다. 이미 같은 승인 번호로 완료된 결제에 같은 알림이 또 와도 `true`입니다.
@@ -60,8 +60,8 @@ Day5의 좁은 계약 통과를 결제 시스템 전체 완료로 보지 않는�
 ### 준비해 둔 도구
 
 - `PaymentReader`: 주문 번호로 저장된 결제를 찾습니다.
-- `PaymentSaver.saveChanges`: 전달한 결제의 ID로 기존 DB 기록을 찾아 변경 내용을 저장합니다.
-- `Payment.confirmApproval`: 결제 상태와 승인 번호를 함께 바꾸는 부분입니다. 여기가 직접 구현할 곳입니다.
+- 조회한 `PaymentEntity`를 변경하면 서비스 트랜잭션 종료 시 기존 행에 반영됩니다. 별도 `saveChanges` 재조회·복사 단계는 제거했습니다.
+- `PaymentEntity.confirmApproval`: 결제 상태와 승인 번호를 함께 바꾸는 부분입니다. Day6 사용자 구현을 그대로 옮겨 보존했습니다.
 - Controller: 결제사가 보낸 HTTP 요청을 받아 `onNotification`에 전달합니다. 이미 제공했습니다.
 - 개발 화면: 실제 결제사 대신 승인 알림을 보내 줍니다. 실제 돈이 오가지는 않습니다.
 

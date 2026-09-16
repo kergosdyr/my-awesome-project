@@ -1,9 +1,9 @@
 package challenge.commerce.domain.order;
 
-import challenge.commerce.domain.payment.Payment;
 import challenge.commerce.domain.payment.PaymentReader;
+import challenge.commerce.infra.db.OrderEntity;
+import challenge.commerce.infra.db.PaymentEntity;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -20,28 +20,27 @@ public class OrderQueryService {
     }
 
     @Transactional(readOnly = true)
-    public OrderDetails find(long id) {
-        return details(orders.read(id), payments.readByOrderId(id));
-    }
-
-    private OrderDetails details(PurchaseOrder order, Optional<Payment> payment) {
-        return new OrderDetails(
-                order,
-                payment.map(p -> p.status().name()).orElse("UNPAID"),
-                payment.map(Payment::approvalId).orElse(null));
+    public OrderDetailsResult find(long id) {
+        var order = orders.read(id);
+        return payments.readByOrderId(id)
+                .map(payment -> OrderDetailsResult.withPayment(order, payment))
+                .orElseGet(() -> OrderDetailsResult.withoutPayment(order));
     }
 
     @Transactional(readOnly = true)
-    public List<OrderDetails> list() {
+    public List<OrderDetailsResult> list() {
         var allOrders = orders.readAll();
         var paymentByOrder = payments
-                .readForOrders(allOrders.stream().map(PurchaseOrder::id).toList())
+                .readForOrders(allOrders.stream().map(OrderEntity::id).toList())
                 .stream()
-                .collect(Collectors.toMap(Payment::orderId, Function.identity()));
+                .collect(Collectors.toMap(PaymentEntity::orderId, Function.identity()));
         return allOrders.stream()
-                .map(order -> details(order, Optional.ofNullable(paymentByOrder.get(order.id()))))
+                .map(order -> {
+                    var payment = paymentByOrder.get(order.id());
+                    return payment == null
+                            ? OrderDetailsResult.withoutPayment(order)
+                            : OrderDetailsResult.withPayment(order, payment);
+                })
                 .toList();
     }
-
-    public record OrderDetails(PurchaseOrder order, String paymentStatus, String approvalId) {}
 }

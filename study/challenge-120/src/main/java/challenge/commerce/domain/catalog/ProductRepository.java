@@ -1,12 +1,13 @@
 package challenge.commerce.domain.catalog;
 
+import challenge.commerce.infra.db.ProductEntity;
+import challenge.commerce.infra.db.ProductOptionEntity;
 import java.util.List;
-import java.util.Optional;
 
 public interface ProductRepository {
-    List<Product> findAll();
+    List<ProductEntity> findAll();
 
-    Optional<Product> findByOptionId(long optionId);
+    List<ProductOptionEntity> findAllOptions();
 
     boolean takeStock(long optionId, int quantity);
 }

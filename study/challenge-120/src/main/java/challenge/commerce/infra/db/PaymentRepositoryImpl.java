@@ -1,6 +1,6 @@
 package challenge.commerce.infra.db;
 
-import challenge.commerce.domain.payment.*;
+import challenge.commerce.domain.payment.PaymentRepository;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -15,24 +15,17 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
-    public Optional<Payment> findByOrderId(long id) {
-        return payments.findByOrderId(id).map(PaymentEntity::toDomain);
+    public Optional<PaymentEntity> findByOrderId(long id) {
+        return payments.findByOrderId(id);
     }
 
     @Override
-    public List<Payment> findByOrderIds(Collection<Long> orderIds) {
-        return payments.findByOrderIdIn(orderIds).stream()
-                .map(PaymentEntity::toDomain)
-                .toList();
+    public List<PaymentEntity> findByOrderIds(Collection<Long> orderIds) {
+        return payments.findByOrderIdIn(orderIds);
     }
 
     @Override
-    public Payment create(Payment payment) {
-        return payments.save(PaymentEntity.from(payment)).toDomain();
-    }
-
-    @Override
-    public void update(Payment payment) {
-        payments.findById(payment.id()).orElseThrow().reflect(payment);
+    public PaymentEntity create(PaymentEntity payment) {
+        return payments.save(payment);
     }
 }

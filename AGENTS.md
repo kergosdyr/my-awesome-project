@@ -24,3 +24,10 @@
 재발한 환경 문제를 해결했을 때만 `docs/agent-workflow.md`에 원인과 재사용할 해결책을 짧게 갱신한다. 일반 작업마다 회고 문서나 검증 보고서를 만들 필요는 없다.
 
 예전 Commerce Lab과 optimistic-lab·load-comparison은 종료했다. 과거 문서의 재사용 지시로 종료한 프로젝트를 다시 추가하지 않는다. 활성 백엔드는 challenge-120의 FORM 커머스이며 FE/API를 함께 실행한다. 기존 예약·결제 실습은 legacy 소스 세트로 보존하고 활성 설계에 섞지 않는다. Day6은 Payment 상태·알림 과제이며 상품·주문은 제공 환경이다. 날짜별·문제별 Gradle 모듈을 만들지 않고, migration 병합 이후 `day/NNN` 브랜치→PR→Squash and Merge로 운영한다.
+
+## JPA Entity 공유 예외 — 2026-09-16 사용자 정정
+
+- JPA Entity는 유일한 infra 격리 예외다. Entity는 Service·Reader·Saver·Validator 등 업무 처리 객체 전체에서 입력·반환·상태 변경 대상으로 공유할 수 있다. API 응답 매퍼의 입력으로도 사용할 수 있지만 HTTP 응답은 전용 DTO로 반환한다.
+- 이 예외는 JpaRepository·EntityManager·쿼리·DB 설정에 적용하지 않는다. 이들은 infra에 두고 업무 영역은 저장소 인터페이스를 사용한다.
+- JPA 의존을 피하기 위한 Entity 복제 모델과 왕복 변환을 만들지 않는다. 여러 Entity를 묶거나 계산 결과를 담는 Result는 필요할 때 유지한다.
+- 조회한 managed Entity의 변경은 서비스 트랜잭션에서 반영한다. 응답 변환에 필요한 데이터는 트랜잭션 안에서 명시적으로 조회하고 OSIV나 암묵적인 지연 조회에 의존하지 않는다.

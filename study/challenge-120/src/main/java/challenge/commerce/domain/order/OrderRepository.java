@@ -1,12 +1,13 @@
 package challenge.commerce.domain.order;
 
+import challenge.commerce.infra.db.OrderEntity;
 import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository {
-    PurchaseOrder create(PurchaseOrder order);
+    OrderEntity create(OrderEntity order);
 
-    Optional<PurchaseOrder> findById(long id);
+    Optional<OrderEntity> findById(long id);
 
-    List<PurchaseOrder> findAll();
+    List<OrderEntity> findAll();
 }

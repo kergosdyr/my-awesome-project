@@ -1,8 +1,10 @@
 package challenge.commerce.api;
 
+import challenge.commerce.api.request.CreateOrderRequest;
+import challenge.commerce.api.response.OrderDetailsResponse;
+import challenge.commerce.api.response.OrderResponse;
 import challenge.commerce.domain.order.*;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -20,23 +22,17 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public PurchaseOrder create(@Valid @RequestBody CreateRequest request) {
-        return orders.create(
-                new OrderService.CreateOrder(request.optionId(), request.quantity(), request.displayedUnitPrice()));
+    public OrderResponse create(@Valid @RequestBody CreateOrderRequest request) {
+        return OrderResponse.from(orders.create(request.toCommand()));
     }
 
     @GetMapping
-    public List<OrderQueryService.OrderDetails> list() {
-        return queries.list();
+    public List<OrderDetailsResponse> list() {
+        return queries.list().stream().map(OrderDetailsResponse::from).toList();
     }
 
     @GetMapping("/{id}")
-    public OrderQueryService.OrderDetails find(@PathVariable("id") long id) {
-        return queries.find(id);
+    public OrderDetailsResponse find(@PathVariable("id") long id) {
+        return OrderDetailsResponse.from(queries.find(id));
     }
-
-    public record CreateRequest(
-            @Positive long optionId,
-            @Min(1) @Max(5) int quantity,
-            @NotNull @Positive Long displayedUnitPrice) {}
 }

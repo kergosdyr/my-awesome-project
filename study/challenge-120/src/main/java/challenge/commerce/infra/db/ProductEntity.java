@@ -30,4 +30,32 @@ public class ProductEntity {
         this.price = price;
         this.image = image;
     }
+
+    public long id() {
+        return id;
+    }
+
+    public String brand() {
+        return brand;
+    }
+
+    public String name() {
+        return name;
+    }
+
+    public String description() {
+        return description;
+    }
+
+    public String category() {
+        return category;
+    }
+
+    public long price() {
+        return price;
+    }
+
+    public String image() {
+        return image;
+    }
 }

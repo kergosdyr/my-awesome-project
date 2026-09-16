@@ -1,5 +1,6 @@
 package challenge.commerce.domain.payment;
 
+import challenge.commerce.infra.db.PaymentEntity;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -15,11 +16,11 @@ public class PaymentReader {
         this.payments = payments;
     }
 
-    public List<Payment> readForOrders(Collection<Long> orderIds) {
+    public List<PaymentEntity> readForOrders(Collection<Long> orderIds) {
         return orderIds.isEmpty() ? List.of() : payments.findByOrderIds(orderIds);
     }
 
-    public Optional<Payment> readByOrderId(long orderId) {
+    public Optional<PaymentEntity> readByOrderId(long orderId) {
         return payments.findByOrderId(orderId);
     }
 }
