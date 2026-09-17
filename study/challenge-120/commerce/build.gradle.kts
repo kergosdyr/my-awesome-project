@@ -50,3 +50,14 @@ spotless {
         endWithNewline()
     }
 }
+
+// B009: 격리된 H2 테스트 DB에서 관찰한다.
+tasks.register<Test>("pagingExperiment") {
+    group = "verification"
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    filter { includeTestsMatching("challenge.commerce.OrderPagingObservationTest") }
+    systemProperty("b009.solution", project.hasProperty("b009Solution").toString())
+    testLogging.showStandardStreams = true
+    outputs.upToDateWhen { false }
+}

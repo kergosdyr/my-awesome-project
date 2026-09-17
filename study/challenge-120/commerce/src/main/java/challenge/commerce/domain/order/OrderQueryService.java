@@ -27,6 +27,18 @@ public class OrderQueryService {
                 .orElseGet(() -> OrderDetailsResult.withoutPayment(order));
     }
 
+    /**
+     * B009: 최근 주문부터 size개와 다음 요청 표식을 반환한다.
+     * after=null은 첫 요청. createdAt 내림차순, 같은 시각은 id 내림차순.
+     * 새 최신 주문이 들어와도 기존 주문을 중복·누락 없이 이어 읽는다.
+     * 쿼리·건수 제한은 infra에, 결제 조합과 트랜잭션은 이 서비스에 둔다.
+     * 실행: ./gradlew :commerce:test --tests '*OrderWindowTest'
+     */
+    @Transactional(readOnly = true)
+    public OrderWindowResult window(int size, String after) {
+        throw new UnsupportedOperationException("B009: 주문 페이지 조회를 구현하세요.");
+    }
+
     @Transactional(readOnly = true)
     public List<OrderDetailsResult> list() {
         var allOrders = orders.readAll();

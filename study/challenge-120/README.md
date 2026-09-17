@@ -2,12 +2,20 @@
 
 [과제 목록](docs/exercises/README.md) · [C007 사이즈 탐색](docs/exercises/C007-SizeSearch.md) · [B007 가격 확인](docs/exercises/B007-price-consent.md) · [학습 장부](ledger.md)
 
-## 지금 시작할 Day 8
+## 지금 시작할 Day 9
 
-- **Coding30분:** [C008 — 배송 기한을 지킬 최소 적재량](docs/exercises/C008-ShippingCapacity.md). 구현은 `ShippingCapacity.minimumCapacity`.
-- **Backend45분:** [B008 — 쿠폰 할인 배분과 부분 취소 금액](docs/exercises/B008-CouponRefundPlan.md). 직접 잔돈 배분 정책을 정하고 `CouponRefundPlanner.plan`을 구현한다. 실제 환불 API가 아닌 기존 주문 스냅샷을 이용한 계산 실험이다.
-- 복습15분은 기존 통합 복습을 따른다. 이번 발행에서 별도 복습 문항을 중복 추가하지 않는다. Minimum45분은 각 문서의 범위를 따른다.
-- Day8 공개 테스트는 미구현 상태로 발행했다. 9/17 사용자 요청으로 B008 해답을 구현했고 공개12/12 통과했다. 기존 Day7 가격 검증과 다품목 주문 구현은 그대로 보존한다.
+- **Backend45분:** [B009 — 주문 목록 이어 읽기와 조회 비용](docs/exercises/B009-OrderPaging.md). 새 주문 삽입·깊은 페이지·인덱스 실행계획을 현재 FORM 데이터로 관찰한다. `OrderQueryService.window`와 조회·표식·인덱스는 직접 설계한다.
+- **Coding30분:** [C009 — 가장 큰 관측값 k개](docs/exercises/C009-LargestReadings.md). `LargestReadings.topK`를 구현한다.
+- 통합 복습15분은 이미 발행·응답한 기존 기록을 유지한다. 새 문항을 중복 발행하지 않는다. Minimum45분은 각 과제15/20분과 기존 복습10분이다.
+- C008은 해답 설명 후 사용자 구현8/8·마무리 선언, B008은 AI 해답 구현 후12/12·대략 이해 자기보고다. 독립 해결로 평가하지 않는다. Day9는 사용자 요청으로 전환했으며 과거 미완료 항목을 추가 숙제로 붙이지 않는다.
+
+```sh
+./gradlew :commerce:pagingExperiment
+./gradlew :commerce:test --tests '*OrderWindowTest'
+./gradlew :coding:test --tests '*LargestReadingsTest'
+```
+
+관찰은 구현 전에도 실행된다. 새 과제 공개 검사는 TODO 때문에 실패하며 준비 검증과 사용자 풀이 완료를 구분한다.
 
 ## 작업 구조
 
@@ -41,7 +49,7 @@ challenge-120/
 ./gradlew :commerce:test --tests '*PriceConsentTest'  # B007
 ./gradlew :commerce:priceExperiment                  # 가격 변경 관찰
 ./gradlew :commerce:test --tests 'challenge.commerce.Payment*' # B006
-./gradlew ciTest                                     # 완료 코딩28 + 커머스18
+./gradlew ciTest                                     # 완료 코딩28 + 커머스28
 ./gradlew test --continue                            # 모든 현재 과제; 미완성 실패도 표시
 ./gradlew assemble                                  # 두 모듈 컴파일·커머스 실행 배포본
 ./gradlew build --continue                           # 전체 테스트·패키징·포맷

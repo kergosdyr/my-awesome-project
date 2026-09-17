@@ -28,7 +28,7 @@ public class ApiErrors {
 
     @ExceptionHandler(UnsupportedOperationException.class)
     ResponseEntity<ErrorResponse> unfinished() {
-        return ResponseEntity.status(501).body(new ErrorResponse("NOT_IMPLEMENTED", "요청한 결제 처리가 아직 구현되지 않았습니다."));
+        return ResponseEntity.status(501).body(new ErrorResponse("NOT_IMPLEMENTED", "요청한 기능이 아직 구현되지 않았습니다."));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

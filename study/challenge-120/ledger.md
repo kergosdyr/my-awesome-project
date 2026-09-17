@@ -14,7 +14,7 @@
 | 2026-09-14 / 6 | C006 / B006 | C006 마감: 최초 사용자 풀이9/9·O(n) 시간/O(n) 공간 / AI 횟수 배열 풀이 학습 후 현재 코드9/9·O(1) 공간·원문 순회와 알파벳순 혼동 교정 / 독립 회상 미검증 / B006 사용자 구현 보존·9/15 원본 재검증5/5·독립 설명 미평가 | 데이터 없음 | [세션](../sessions/2026-09-14.md), [실습](docs/exercises/B006-payment-notification.md) |
 | 2026-09-15 / 7 | C007 / B007 | C007 해답 설명 후 사용자 구현9/9·O(log n) 시간/O(1) 공간·코딩 마감 / B007 준비 완료·4/8 통과(미구현4실패)·진행 대기 / 독립 이진 탐색 해결로 평가하지 않음 | 데이터 없음 | [과제](docs/exercises/B007-price-consent.md), [세션](../sessions/2026-09-15.md) |
 | 2026-09-16 / 8 | C008 / B008 | 사용자 요청으로 신규 발행 / C008 배송 적재량·B008 쿠폰 배분과 환불 계획 / C008은 해답 설명 후 사용자 구현8/8·B008은 AI 해답 구현 후12/12·독립 해결 미평가 / C007·B007 결과는 이전 세션에 보존 | 데이터 없음 | [C008](docs/exercises/C008-ShippingCapacity.md), [B008](docs/exercises/B008-CouponRefundPlan.md), [세션](../sessions/2026-09-16.md) |
-| 2026-09-17 / 9 | C008 / B008 계속 | 새 문제를 추가하지 않음 / B008 사용자 비례 계산 시도 후 AI 해답 요청·공개12/12 / 실제 시간·독립 재구현 미확인 | 데이터 없음 | [C008](docs/exercises/C008-ShippingCapacity.md), [B008](docs/exercises/B008-CouponRefundPlan.md), [세션](../sessions/2026-09-17.md) |
+| 2026-09-17 / 9 | C009 / B009 | C008 마무리·B008 AI 해답 학습 후 사용자 요청으로 신규 발행 / C009 큰 값 k개·B009 현재 FORM 주문 페이지와 DB 비용 / 구현 대기·준비 검증과 풀이 성과 구분 | 데이터 없음 | [C009](docs/exercises/C009-LargestReadings.md), [B009](docs/exercises/B009-OrderPaging.md), [세션](../sessions/2026-09-17.md) |
 
 ## Weakness Ledger
 
