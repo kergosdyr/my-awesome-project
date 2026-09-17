@@ -26,6 +26,16 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public List<ProductEntity> findByIds(List<Long> ids) {
+        return products.findAllById(ids);
+    }
+
+    @Override
+    public List<ProductOptionEntity> findOptionsByIds(List<Long> ids) {
+        return options.findAllById(ids);
+    }
+
+    @Override
     public boolean takeStock(long id, int quantity) {
         return options.takeStock(id, quantity) == 1;
     }

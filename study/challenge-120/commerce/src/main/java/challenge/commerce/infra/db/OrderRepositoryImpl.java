@@ -2,7 +2,6 @@ package challenge.commerce.infra.db;
 
 import challenge.commerce.domain.order.OrderRepository;
 import java.util.*;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -20,11 +19,11 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Optional<OrderEntity> findById(long id) {
-        return orders.findById(id);
+        return orders.findWithItemsById(id);
     }
 
     @Override
     public List<OrderEntity> findAll() {
-        return orders.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        return orders.findAllWithItems();
     }
 }

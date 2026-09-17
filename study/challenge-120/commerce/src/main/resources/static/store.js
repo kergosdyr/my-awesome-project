@@ -4,6 +4,9 @@ const catalog = document.querySelector("#catalog");
 const productDialog = document.querySelector("#product-dialog");
 const ordersDialog = document.querySelector("#orders-dialog");
 let products = [];
+let cart = [];
+let checkingOut = false;
+const cartDialog = document.querySelector("#cart-dialog");
 let toastTimer;
 
 function toast(message) {
@@ -30,6 +33,7 @@ async function loadCatalog() {
 }
 
 function openProduct(id) {
+  if (checkingOut) { toast("주문 처리가 끝난 뒤 상품을 추가해 주세요."); return; }
   const product = products.find(item => item.id === id);
   if (!product) return;
   document.querySelector("#product-detail").innerHTML = `
@@ -43,34 +47,37 @@ function openProduct(id) {
       <label for="quantity">수량</label><input id="quantity" type="number" min="1" max="5" value="1" required>
       <div class="total"><span>주문 금액</span><strong id="total">${money(product.price)}</strong></div>
       <p id="order-error" class="error" role="alert"></p>
-      <button class="primary" type="submit" ${product.options.every(option => option.stock === 0) ? "disabled" : ""}>${product.options.every(option => option.stock === 0) ? "품절된 상품입니다" : "주문하기 →"}</button>
-      <p class="form-note">주문 후 결제를 진행합니다. 한 번에 최대 5개까지 선택할 수 있습니다.</p>
+      <button class="primary" type="submit" ${product.options.every(option => option.stock === 0) ? "disabled" : ""}>${product.options.every(option => option.stock === 0) ? "품절된 상품입니다" : "장바구니에 담기 →"}</button>
+      <p class="form-note">장바구니에 여러 상품을 담고 함께 주문할 수 있습니다. 옵션별 최대 5개입니다.</p>
     </form>`;
   const form = document.querySelector("#order-form");
   form.querySelector("#quantity").oninput = event => {
     document.querySelector("#total").textContent = money(product.price * Math.max(0, Number(event.target.value)));
   };
-  form.onsubmit = async event => {
+  form.onsubmit = event => {
     event.preventDefault();
-    const button = form.querySelector("button[type=submit]");
-    button.disabled = true;
-    button.textContent = "주문을 만들고 있습니다…";
-    try {
-      await api("/api/orders", "POST", {
-        optionId: Number(form.querySelector("#option").value),
-        quantity: Number(form.querySelector("#quantity").value),
-        displayedUnitPrice: product.price,
-      });
-      productDialog.close();
-      await openOrders();
-      await loadCatalog();
-      toast("주문이 생성되었습니다. 결제를 진행해 주세요.");
-    } catch (error) {
-      form.querySelector("#order-error").textContent = error.message;
-    } finally {
-      button.disabled = false;
-      button.textContent = "주문하기 →";
+    const optionId = Number(form.querySelector("#option").value);
+    const quantity = Number(form.querySelector("#quantity").value);
+    const option = product.options.find(item => item.id === optionId);
+    const existing = cart.find(item => item.optionId === optionId);
+    if (!option || quantity < 1 || !Number.isInteger(quantity) || quantity + (existing?.quantity ?? 0) > 5) {
+      form.querySelector("#order-error").textContent = "같은 옵션은 최대 5개까지 담을 수 있습니다.";
+      return;
     }
+    if (existing && existing.displayedUnitPrice !== product.price) {
+      form.querySelector("#order-error").textContent = "장바구니에서 현재 가격을 다시 확인해 주세요.";
+      return;
+    }
+    if (!existing && cart.length >= 20) {
+      form.querySelector("#order-error").textContent = "한 주문에 최대 20종류까지 담을 수 있습니다.";
+      return;
+    }
+    if (existing) existing.quantity += quantity;
+    else cart.push({ optionId, quantity, displayedUnitPrice: product.price,
+      productName: product.name, optionName: `${option.color} / ${option.size}`, image: product.image });
+    renderCart();
+    productDialog.close();
+    toast("장바구니에 담았습니다. 다른 상품도 함께 선택해 보세요.");
   };
   productDialog.showModal();
 }
@@ -84,7 +91,8 @@ async function loadOrders() {
     container.innerHTML = orders.length ? orders.map(({ order, paymentStatus, approvalId }) => `
       <article class="order-card">
         <div class="order-top"><span>ORDER ${String(order.id).padStart(5, "0")}</span><span class="status ${paymentStatus.toLowerCase()}">${labels[paymentStatus] ?? escapeHtml(paymentStatus)}</span></div>
-        <div class="order-item"><img src="${escapeHtml(order.image)}" alt=""><div><h3>${escapeHtml(order.productName)}</h3><p>${escapeHtml(order.optionName)} / ${order.quantity}개</p><strong>${money(order.totalAmount)}</strong></div></div>
+        ${order.items.map(item => `<div class="order-item"><img src="${escapeHtml(item.image)}" alt=""><div><h3>${escapeHtml(item.productName)}</h3><p>${escapeHtml(item.optionName)} / ${item.quantity}개 · 개당 ${money(item.unitPrice)}</p><strong>${money(item.totalAmount)}</strong></div></div>`).join("")}
+        <div class="total"><span>주문 합계</span><strong>${money(order.totalAmount)}</strong></div>
         ${paymentStatus === "PAID" ? `<p class="order-note">승인이 확인되었습니다. ${escapeHtml(approvalId ?? "")}</p>` : paymentStatus === "PENDING" ? `<p class="order-note">결제 승인 결과를 기다리고 있습니다.<br>새로고침하면 최신 상태를 확인할 수 있습니다.</p>` : `<button class="primary" data-pay="${order.id}">${money(order.totalAmount)} 결제하기 →</button>`}
         <p class="error" id="payment-error-${order.id}" role="alert"></p>
       </article>`).join("") : '<div class="empty"><span>아직, 첫 번째 선택을 기다려요.</span><p>마음에 드는 상품을 골라보세요.</p><button class="primary" data-close="orders-dialog">컬렉션 둘러보기 →</button></div>';
@@ -123,4 +131,70 @@ document.addEventListener("click", event => {
 });
 document.querySelector("#open-orders").onclick = openOrders;
 document.querySelector("#refresh-orders").onclick = loadOrders;
+
+
+function renderCart() {
+  document.querySelector("#cart-count").textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+  document.querySelector("#cart-items").innerHTML = cart.length ? cart.map(item => `
+    <article class="order-item"><img src="${escapeHtml(item.image)}" alt=""><div>
+      <h3>${escapeHtml(item.productName)}</h3><p>${escapeHtml(item.optionName)} · 개당 ${money(item.displayedUnitPrice)}</p>
+      <label>수량 <input type="number" min="1" max="5" value="${item.quantity}" data-cart-quantity="${item.optionId}" aria-label="${escapeHtml(item.productName)} 수량" ${checkingOut ? "disabled" : ""}></label>
+      <strong>${money(item.displayedUnitPrice * item.quantity)}</strong>
+      <button class="text-button" data-remove-item="${item.optionId}" ${checkingOut ? "disabled" : ""}>삭제</button>
+    </div></article>`).join("") : '<p class="empty">함께 주문할 상품을 담아 주세요.</p>';
+  document.querySelector("#cart-total").textContent = money(cart.reduce((sum, item) => sum + item.displayedUnitPrice * item.quantity, 0));
+  document.querySelector("#checkout").disabled = checkingOut || !cart.length;
+  document.querySelector("#checkout").textContent = checkingOut ? "주문을 만들고 있습니다…" : "함께 주문하기 →";
+  document.querySelector("#refresh-cart").disabled = checkingOut || !cart.length;
+}
+
+document.querySelector("#open-cart").onclick = () => { renderCart(); cartDialog.showModal(); };
+document.querySelector("#cart-items").onclick = event => {
+  const button = event.target.closest("[data-remove-item]");
+  if (!button || checkingOut) return;
+  cart = cart.filter(item => item.optionId !== Number(button.dataset.removeItem));
+  document.querySelector("#cart-error").textContent = "";
+  renderCart();
+};
+document.querySelector("#cart-items").onchange = event => {
+  const id = Number(event.target.dataset.cartQuantity);
+  const item = cart.find(item => item.optionId === id);
+  if (!item || checkingOut) return;
+  const quantity = Number(event.target.value);
+  if (Number.isInteger(quantity) && quantity >= 1 && quantity <= 5) item.quantity = quantity;
+  renderCart();
+};
+document.querySelector("#refresh-cart").onclick = async () => {
+  checkingOut = true;
+  renderCart();
+  try {
+    const current = await api("/api/products");
+    const refreshed = cart.map(item => {
+      const product = current.find(product => product.options.some(option => option.id === item.optionId));
+      const option = product?.options.find(option => option.id === item.optionId);
+      if (!product || option.stock < item.quantity) throw new Error(`${item.productName}: 선택한 수량의 재고가 없습니다. 수량을 줄이거나 삭제해 주세요.`);
+      return { ...item, displayedUnitPrice: product.price };
+    });
+    cart = refreshed;
+    document.querySelector("#cart-error").textContent = "현재 가격을 반영했습니다. 금액을 확인한 뒤 주문해 주세요.";
+  } catch (error) { document.querySelector("#cart-error").textContent = error.message; }
+  finally { checkingOut = false; renderCart(); }
+};
+document.querySelector("#checkout").onclick = async () => {
+  if (checkingOut || !cart.length) return;
+  checkingOut = true;
+  document.querySelector("#cart-error").textContent = "";
+  renderCart();
+  try {
+    await api("/api/orders", "POST", { items: cart.map(({ optionId, quantity, displayedUnitPrice }) => ({ optionId, quantity, displayedUnitPrice })) });
+    cart = [];
+    cartDialog.close();
+    await openOrders();
+    await loadCatalog();
+    toast("상품을 하나의 주문으로 묶었습니다. 결제를 진행해 주세요.");
+  } catch (error) { document.querySelector("#cart-error").textContent = error.message; }
+  finally { checkingOut = false; renderCart(); }
+};
+renderCart();
+
 await Promise.all([loadCatalog(), loadOrders()]);

@@ -26,7 +26,7 @@ abstract class PriceExperimentSupport extends CommerceHttpSupport {
 
     Reply buy(long displayedPrice, int quantity) throws Exception {
         return request("POST", "/api/orders", """
-                {"optionId":201,"quantity":%d,"displayedUnitPrice":%d}
+                {"items":[{"optionId":201,"quantity":%d,"displayedUnitPrice":%d}]}
                 """.formatted(quantity, displayedPrice));
     }
 

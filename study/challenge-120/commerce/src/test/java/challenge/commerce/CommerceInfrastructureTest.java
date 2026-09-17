@@ -20,10 +20,14 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
     @Test
     void orderUsesServerPriceAndConsumesOptionStock() throws Exception {
         var response = request(
-                "POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":101,\"quantity\":2,\"amount\":1}");
+                "POST",
+                "/api/orders",
+                "{\"items\":[{\"displayedUnitPrice\":129000,\"optionId\":101,\"quantity\":2,\"amount\":1}]}");
         assertEquals(201, response.code());
         assertEquals(258000, response.body().get("totalAmount").asLong());
-        assertEquals("유틸리티 필드 재킷", response.body().get("productName").asText());
+        assertEquals(
+                "유틸리티 필드 재킷",
+                response.body().path("items").get(0).get("productName").asText());
         assertEquals(
                 10,
                 request("GET", "/api/products", "")
@@ -45,19 +49,31 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
     void soldOutAndInvalidQuantitiesDoNotCreateOrders() throws Exception {
         assertEquals(
                 409,
-                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":103,\"quantity\":1}")
+                request(
+                                "POST",
+                                "/api/orders",
+                                "{\"items\":[{\"displayedUnitPrice\":129000,\"optionId\":103,\"quantity\":1}]}")
                         .code());
         assertEquals(
                 400,
-                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":101,\"quantity\":0}")
+                request(
+                                "POST",
+                                "/api/orders",
+                                "{\"items\":[{\"displayedUnitPrice\":129000,\"optionId\":101,\"quantity\":0}]}")
                         .code());
         assertEquals(
                 400,
-                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":101,\"quantity\":6}")
+                request(
+                                "POST",
+                                "/api/orders",
+                                "{\"items\":[{\"displayedUnitPrice\":129000,\"optionId\":101,\"quantity\":6}]}")
                         .code());
         assertEquals(
                 404,
-                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":999,\"quantity\":1}")
+                request(
+                                "POST",
+                                "/api/orders",
+                                "{\"items\":[{\"displayedUnitPrice\":129000,\"optionId\":999,\"quantity\":1}]}")
                         .code());
         assertEquals(0, orders.count());
         assertEquals(
@@ -75,11 +91,17 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
     void repeatedOrdersCannotOversellStock() throws Exception {
         assertEquals(
                 201,
-                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":102,\"quantity\":5}")
+                request(
+                                "POST",
+                                "/api/orders",
+                                "{\"items\":[{\"displayedUnitPrice\":129000,\"optionId\":102,\"quantity\":5}]}")
                         .code());
         assertEquals(
                 409,
-                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":102,\"quantity\":5}")
+                request(
+                                "POST",
+                                "/api/orders",
+                                "{\"items\":[{\"displayedUnitPrice\":129000,\"optionId\":102,\"quantity\":5}]}")
                         .code());
         assertEquals(1, orders.count());
         assertEquals(

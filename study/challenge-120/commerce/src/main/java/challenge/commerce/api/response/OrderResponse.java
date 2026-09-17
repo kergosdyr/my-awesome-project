@@ -2,26 +2,13 @@ package challenge.commerce.api.response;
 
 import challenge.commerce.infra.db.OrderEntity;
 import java.time.Instant;
+import java.util.List;
 
-public record OrderResponse(
-        Long id,
-        long optionId,
-        String productName,
-        String optionName,
-        String image,
-        long unitPrice,
-        int quantity,
-        long totalAmount,
-        Instant createdAt) {
+public record OrderResponse(Long id, List<OrderItemResponse> items, long totalAmount, Instant createdAt) {
     public static OrderResponse from(OrderEntity order) {
         return new OrderResponse(
                 order.id(),
-                order.optionId(),
-                order.productName(),
-                order.optionName(),
-                order.image(),
-                order.unitPrice(),
-                order.quantity(),
+                order.items().stream().map(OrderItemResponse::from).toList(),
                 order.totalAmount(),
                 order.createdAt());
     }

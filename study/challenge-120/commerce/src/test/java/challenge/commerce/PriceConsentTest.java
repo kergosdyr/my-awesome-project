@@ -24,7 +24,7 @@ class PriceConsentTest extends PriceExperimentSupport {
         var reply = buy(29000, 2);
         assertEquals(201, reply.code());
         assertEquals(58000, reply.body().path("totalAmount").asLong());
-        assertEquals(29000, reply.body().path("unitPrice").asLong());
+        assertEquals(29000, reply.body().path("items").get(0).path("unitPrice").asLong());
         assertEquals(1, orders.count());
         assertEquals(18, stock());
     }
@@ -79,7 +79,7 @@ class PriceConsentTest extends PriceExperimentSupport {
     void missingDisplayedPriceIsBadRequest() throws Exception {
         assertEquals(
                 400,
-                request("POST", "/api/orders", "{\"optionId\":201,\"quantity\":1}")
+                request("POST", "/api/orders", "{\"items\":[{\"optionId\":201,\"quantity\":1}]}")
                         .code());
         assertEquals(0, orders.count());
         assertEquals(20, stock());

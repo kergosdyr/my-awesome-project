@@ -30,6 +30,7 @@ tasks.register<Test>("ciTest") {
         includeTestsMatching("challenge.commerce.PaymentNotificationContractTest")
         includeTestsMatching("challenge.commerce.OrderResponseContractTest")
         includeTestsMatching("challenge.commerce.EntityReadBoundaryTest")
+        includeTestsMatching("challenge.commerce.MultiItemOrderTest")
     }
 }
 tasks.register<Test>("priceExperiment") {

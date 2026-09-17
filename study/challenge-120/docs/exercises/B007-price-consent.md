@@ -34,12 +34,12 @@ Day5의 응답 유실·PG 승인 후 DB 롤백을 다시 출제하지 않는다.
 | 양수 가격 필수 검증, 기존 주문 가격 기록 | 기존 주문·재고 흐름에 규칙을 연결하는 방법 |
 | 실제 HTTP 서버·H2와 가격 변경·PG 관찰 테스트 | 결과와 이유를 설명하고 작은 변형 하나 예상 |
 
-진입점은 [OrderService.java](../../commerce/src/main/java/challenge/commerce/domain/order/OrderService.java)의 기존 `create(CreateOrderCommand)`다. `CreateOrderCommand`에는 `optionId`, `quantity`, `displayedUnitPrice`가 있다. 메서드·처리 순서를 추가로 지정하지 않으며, 관련 domain 객체로 규칙을 옮겨도 된다. **주문 생성 본문은 이전 동작 그대로이며 가격 확인은 TODO다.**
+진입점은 [OrderService.java](../../commerce/src/main/java/challenge/commerce/domain/order/OrderService.java)의 기존 `create(CreateOrderCommand)`다. `CreateOrderCommand.items`의 각 품목에는 `optionId`, `quantity`, `displayedUnitPrice`가 있다. 메서드·처리 순서를 추가로 지정하지 않으며, 관련 domain 객체로 규칙을 옮겨도 된다. 가격 확인은 사용자 구현으로 완료했으며, 아래의 다품목 확장은 사용자 요청으로 제공 환경에 반영했다.
 
 HTTP 입력 예:
 
 ```json
-{"optionId":201,"quantity":2,"displayedUnitPrice":29000}
+{"items":[{"optionId":201,"quantity":2,"displayedUnitPrice":29000}]}
 ```
 
 `displayedUnitPrice`는 총액이 아니라 화면에서 본 **1장 가격**이다. 이를 서버 판매 가격이나 할인 쿠폰처럼 사용하면 안 된다. 누락·0·음수는 400이며, 기존 요청 도구와 FE에도 이 필드를 연결했다.
@@ -109,6 +109,16 @@ cd /Users/justin/IdeaProjects/my-project/study/challenge-120
 - 사용자는 과제가 너무 쉽고 선택할 부분이 적다고 평가했다. 동일 과제의 완료 기준에 새 조건을 덧붙이지 않는다. 다음 Backend는 업무 결과가 달라지는 선택과 관찰 가능한 실험부터 설계하며, 미리 처리 순서까지 제공하지 않는다.
 
 
-### 주문 모델의 한계
+### 다품목 주문으로 변경 · 2026-09-16
 
-현재 OrderEntity는 optionId·unitPrice·quantity를 직접 가지므로 한 주문에 한 종류의 옵션만 담는다. 여러 상품을 한 번에 주문하려면 주문 공통 정보와 OrderItem(품목별 옵션·수량·주문 당시 단가)을 분리해야 한다. 요청도 품목 목록을 받아야 하며, 품목별 가격 확인·재고 차감·주문 저장은 하나의 트랜잭션에서 전부 성공하거나 취소되어야 한다. 한 품목의 가격 인상과 다른 품목의 인하가 상쇄될 수 있으므로 합계 비교만으로 가격 동의를 확인할 수 없다. 이번에는409 연결만 수정했고 다품목 모델은 아직 구현하지 않았다.
+사용자 요청으로 단일 옵션 주문을 `OrderEntity`와 `OrderItemEntity`로 분리했다. 이는 B007 완료 조건을 추가한 것이 아니라 제공 환경의 설계 개선이다.
+
+- 요청은 `items` 목록을 받는다. 한 주문은1~20개 품목, 옵션별 수량은 기존처럼1~5개다. 같은 옵션을 두 행에 나눠 보내면400이며, 화면에서는 같은 옵션을 합쳐 담는다.
+- 각 품목의 가격을 확인한 뒤 재고를 차감한다. 하나라도 실패하면 주문·품목·모든 재고 변경을 함께 롤백한다. 재고 행은 옵션 ID 순으로 확보한다.
+- 이름·옵션·이미지·단가·수량은 주문 품목에 기록한다. 주문 총액은 품목 금액의 합계이고 결제는 주문 전체에 한 번 요청한다.
+- 응답은 `id`, `items`, `totalAmount`, `createdAt`이다. 기존 단일 품목 요청·응답 형식은 대체했고 FE·HTTP 도구·기존 테스트도 갱신했다.
+- 주문 조회는 품목을 fetch join한 뒤 결제를 일괄 조회한다. OSIV=false에서도 API 변환 중 추가 SQL이 발생하지 않는다.
+
+검토 포인트: 한 품목의 가격 인상과 다른 품목의 인하가 상쇄될 수 있으므로 합계만 비교하면 안 된다. 재고가 부족한 두 번째 품목에서 실패했을 때 첫 번째 품목의 차감도 되돌아가야 한다. `MultiItemOrderTest`가 이를 검사한다.
+
+남은 범위: 가격 조회 이후 동시 가격 변경을 막는 잠금·견적 유효기간은 도입하지 않았다. 현재 H2는 실행마다 다시 만드는 제공 환경이며 기존 운영 DB의 스키마 마이그레이션은 포함하지 않는다. 주문 목록은 여전히 전체 조회이고, 장바구니는 브라우저 메모리에만 보관한다.

@@ -9,5 +9,9 @@ public interface ProductRepository {
 
     List<ProductOptionEntity> findAllOptions();
 
+    List<ProductEntity> findByIds(List<Long> ids);
+
+    List<ProductOptionEntity> findOptionsByIds(List<Long> ids);
+
     boolean takeStock(long optionId, int quantity);
 }

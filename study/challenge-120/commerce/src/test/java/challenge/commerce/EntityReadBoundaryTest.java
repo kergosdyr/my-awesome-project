@@ -46,19 +46,30 @@ class EntityReadBoundaryTest extends CommerceHttpSupport {
         boolean enabled = statistics.isStatisticsEnabled();
         statistics.setStatisticsEnabled(true);
         try {
-            assertEquals(200, pay(order()).code());
+            assertEquals(200, pay(multiOrder()).code());
             statistics.clear();
             assertEquals(1, request("GET", "/api/orders", "").body().size());
             assertEquals(2, statistics.getPrepareStatementCount());
-            order();
-            order();
+            multiOrder();
+            multiOrder();
             statistics.clear();
             var result = request("GET", "/api/orders", "");
             assertEquals(200, result.code());
             assertEquals(3, result.body().size());
+            for (var detail : result.body())
+                assertEquals(2, detail.path("order").path("items").size());
             assertEquals(2, statistics.getPrepareStatementCount(), "주문 수만큼 결제를 개별 조회하지 않는다");
         } finally {
             statistics.setStatisticsEnabled(enabled);
         }
+    }
+
+    private long multiOrder() throws Exception {
+        var reply = request("POST", "/api/orders", """
+                {"items":[{"optionId":101,"quantity":1,"displayedUnitPrice":129000},
+                          {"optionId":201,"quantity":1,"displayedUnitPrice":39000}]}
+                """);
+        assertEquals(201, reply.code());
+        return reply.body().path("id").asLong();
     }
 }

@@ -132,3 +132,10 @@ pre { background: #25281f; color: #e6ead9; padding: 20px; overflow: auto; font-s
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; }
 }
+
+@media (max-width: 460px) {
+  .header { flex-wrap: wrap; gap: 14px; }
+  .header nav { width: 100%; margin-left: 0; justify-content: space-between; }
+}
+#cart-dialog .order-item strong { display: inline-block; margin-right: 12px; }
+#cart-dialog #refresh-cart { margin-bottom: 14px; }

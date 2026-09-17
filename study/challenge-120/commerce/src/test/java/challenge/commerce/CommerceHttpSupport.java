@@ -93,8 +93,8 @@ abstract class CommerceHttpSupport {
     }
 
     long order() throws Exception {
-        var response =
-                request("POST", "/api/orders", "{\"displayedUnitPrice\":129000,\"optionId\":101,\"quantity\":1}");
+        var response = request(
+                "POST", "/api/orders", "{\"items\":[{\"displayedUnitPrice\":129000,\"optionId\":101,\"quantity\":1}]}");
         assertEquals(201, response.code());
         return response.body().get("id").asLong();
     }

@@ -14,6 +14,7 @@
     <a class="wordmark" href="/" aria-label="FORM 홈">FORM<span>®</span></a>
     <nav aria-label="주 메뉴">
       <a href="#collection">컬렉션</a>
+      <button class="text-button" id="open-cart">장바구니 <span id="cart-count">0</span></button>
       <button class="text-button" id="open-orders">주문 내역 <span id="order-count">0</span></button>
     </nav>
     <span class="header-note">INDEPENDENT GOODS · SEOUL</span>
@@ -48,6 +49,15 @@
     <div class="drawer-heading"><div><p class="eyebrow">YOUR SELECTIONS</p><h2 id="orders-title">주문 내역</h2></div><button class="close" data-close="orders-dialog" aria-label="주문 내역 닫기">✕</button></div>
     <div class="orders-toolbar"><span>이 실행 환경에서 만든 주문</span><button class="text-button" id="refresh-orders">새로고침 ↻</button></div>
     <div id="orders" aria-live="polite"></div>
+  </dialog>
+  <dialog id="cart-dialog" class="orders-dialog" aria-labelledby="cart-title">
+    <div class="drawer-heading"><div><p class="eyebrow">YOUR BAG</p><h2 id="cart-title">장바구니</h2></div><button class="close" data-close="cart-dialog" aria-label="장바구니 닫기">✕</button></div>
+    <p class="form-note">품목별 최대 5개 · 최대 20종류. 새로고침하면 장바구니는 비워집니다.</p>
+    <div id="cart-items" aria-live="polite"></div>
+    <div class="total"><span>상품 합계</span><strong id="cart-total">0원</strong></div>
+    <p id="cart-error" class="error" role="alert"></p>
+    <button class="text-button" id="refresh-cart">현재 가격·재고 다시 확인</button>
+    <button class="primary" id="checkout">함께 주문하기 →</button>
   </dialog>
   <div class="toast" id="toast" role="status" hidden></div>
 </body>

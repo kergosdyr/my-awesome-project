@@ -1,7 +1,8 @@
 package challenge.commerce.domain.order;
 
-import challenge.commerce.domain.catalog.ProductResult;
 import challenge.commerce.infra.db.OrderEntity;
+import challenge.commerce.infra.db.OrderItemEntity;
+import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,11 +15,7 @@ public class OrderSaver {
         this.orders = orders;
     }
 
-    public OrderEntity create(ProductResult product, long optionId, int quantity) {
-        var option = product.options().stream()
-                .filter(o -> o.id() == optionId)
-                .findFirst()
-                .orElseThrow();
-        return orders.create(OrderEntity.place(product.product(), option, quantity));
+    public OrderEntity create(List<OrderItemEntity> items) {
+        return orders.create(OrderEntity.place(items));
     }
 }

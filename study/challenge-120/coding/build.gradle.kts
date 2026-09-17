@@ -11,7 +11,7 @@ dependencies {
 
 spotless {
     java {
-        target("src/*/java/challenge/coding/FirstUnique*.java", "src/*/java/challenge/coding/SizeSearch*.java")
+        target("src/*/java/challenge/coding/FirstUnique*.java", "src/*/java/challenge/coding/SizeSearch*.java", "src/*/java/challenge/coding/ShippingCapacity*.java")
         palantirJavaFormat("2.96.0")
         removeUnusedImports()
         trimTrailingWhitespace()

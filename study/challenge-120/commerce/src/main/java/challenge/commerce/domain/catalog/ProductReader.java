@@ -1,8 +1,11 @@
 package challenge.commerce.domain.catalog;
 
+import challenge.commerce.infra.db.ProductEntity;
 import challenge.commerce.infra.db.ProductOptionEntity;
 import challenge.commerce.support.BusinessException;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,10 +27,23 @@ public class ProductReader {
                 .toList();
     }
 
-    public ProductResult readForOption(long optionId) {
-        return readAll().stream()
-                .filter(product -> product.options().stream().anyMatch(option -> option.id() == optionId))
-                .findFirst()
-                .orElseThrow(() -> BusinessException.notFound("상품 옵션을 찾을 수 없습니다."));
+    public Map<Long, ProductSelectionResult> readForOptions(List<Long> optionIds) {
+        var options = products.findOptionsByIds(optionIds);
+        if (options.size() != optionIds.size()) {
+            throw BusinessException.notFound("상품 옵션을 찾을 수 없습니다.");
+        }
+        var productById =
+                products
+                        .findByIds(options.stream()
+                                .map(ProductOptionEntity::productId)
+                                .distinct()
+                                .toList())
+                        .stream()
+                        .collect(Collectors.toMap(ProductEntity::id, Function.identity()));
+        return options.stream().collect(Collectors.toMap(ProductOptionEntity::id, option -> {
+            var product = productById.get(option.productId());
+            if (product == null) throw BusinessException.notFound("상품을 찾을 수 없습니다.");
+            return new ProductSelectionResult(product, option);
+        }));
     }
 }
