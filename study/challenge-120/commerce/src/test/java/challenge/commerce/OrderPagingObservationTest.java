@@ -41,10 +41,9 @@ class OrderPagingObservationTest extends CommerceHttpSupport {
         var data = new OrderPagingFixture(source);
         var jdbc = data.jdbc();
         data.seed(6);
-        String first = "select id from store_order order by created_at desc,id desc limit 3";
-        var before = jdbc.queryForList(first, Long.class);
+        var before = pageIds(0);
         data.appendLatest();
-        var after = jdbc.queryForList(first + " offset 3", Long.class);
+        var after = pageIds(1);
         assertTrue(after.stream().anyMatch(before::contains));
         note("[사건] 첫 3개=%s, 새 주문 삽입 후 OFFSET 3=%s (중복 존재)", before, after);
         data.clear();
@@ -64,9 +63,10 @@ class OrderPagingObservationTest extends CommerceHttpSupport {
             var response = raw("GET", "/api/orders", "");
             assertEquals(200, response.statusCode());
             double ms = (System.nanoTime() - start) / 1_000_000.0;
-            assertEquals(20_000, json.readTree(response.body()).size());
+            assertEquals(20, json.readTree(response.body()).path("entries").size());
+            assertTrue(stats.getEntityLoadCount() <= 80, "2만 건 중 현재 페이지 관련 엔티티만 적재");
             note(
-                    "[기존 전체 HTTP] SQL=%d, entityLoad=%d, UTF8 bytes=%d, wall=%.3f ms (단회·직렬화/네트워크 포함)",
+                    "[기본 페이지 HTTP size=20] SQL=%d, entityLoad=%d, UTF8 bytes=%d, wall=%.3f ms (단회·직렬화/네트워크 포함)",
                     stats.getPrepareStatementCount(),
                     stats.getEntityLoadCount(),
                     response.body().getBytes(StandardCharsets.UTF_8).length,
@@ -131,6 +131,15 @@ class OrderPagingObservationTest extends CommerceHttpSupport {
         Files.writeString(output, report);
         System.out.println(report);
         System.out.println("관찰 기록: " + output.toAbsolutePath());
+    }
+
+    private java.util.List<Long> pageIds(int page) throws Exception {
+        var response = request("GET", "/api/orders?page=" + page + "&size=3", "");
+        assertEquals(200, response.code());
+        var ids = new java.util.ArrayList<Long>();
+        for (var entry : response.body().path("entries"))
+            ids.add(entry.path("order").path("id").asLong());
+        return ids;
     }
 
     private void probe(OrderPagingFixture data, String label, String query) {

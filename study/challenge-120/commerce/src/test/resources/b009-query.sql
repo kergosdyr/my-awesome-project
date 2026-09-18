@@ -1,5 +1,20 @@
--- B009: 구현에서 선택한 조회와 같은 의미의 SELECT를 쓴다. 세미콜론으로 구분.
--- 첫 페이지와 깊은 페이지를 각각 넣을 수 있다. 정답 쿼리는 제공하지 않는다.
--- 깊은 페이지 이전 응답 마지막 값: ${boundaryId}, '${boundaryTime}'
--- 위 표식을 SQL에 쓰면 도구가 실제 fixture 값으로 치환한다.
--- 엔티티/품목 전체 조회와 ID만 조회의 시간은 동일 작업으로 비교하지 않는다.
+-- B009: 사용자 요청으로 제공하는 주문 범위 조회 SQL. 인덱스만 직접 설계한다.
+-- 품목/결제 JOIN 비용은 제외하고 주문의 검색·정렬 비용을 관찰한다.
+-- size=20에 다음 페이지 확인용 1개를 더 읽는다.
+
+-- 1. 첫 페이지: 아직 읽은 주문이 없다.
+SELECT id, created_at
+FROM store_order
+ORDER BY created_at DESC, id DESC
+LIMIT 21;
+
+-- 2. 이어 조회: 도구가 18,000번째 주문의 시각과 ID를 아래 값에 넣는다.
+SELECT id, created_at
+FROM store_order
+WHERE created_at < '${boundaryTime}'
+   OR (created_at = '${boundaryTime}' AND id < ${boundaryId})
+ORDER BY created_at DESC, id DESC
+LIMIT 21;
+
+-- 인덱스 적용 전후에는 같은 SELECT끼리 비교한다.
+-- 도구의 OFFSET 기준 쿼리는 20개, 위 쿼리는 21개이므로 시간 비율을 그대로 개선율로 쓰지 않는다.

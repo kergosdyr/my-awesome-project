@@ -2,9 +2,11 @@ package challenge.commerce;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import challenge.commerce.domain.order.OrderCursor;
 import challenge.commerce.infra.db.OrderPagingFixture;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import javax.sql.DataSource;
@@ -22,11 +24,15 @@ class OrderWindowTest extends CommerceHttpSupport {
         return new OrderPagingFixture(source);
     }
 
-    private JsonNode page(int size, String after) throws Exception {
+    private JsonNode page(int size, OrderCursor after) throws Exception {
         var response = request(
                 "GET",
                 "/api/orders/window?size=" + size
-                        + (after == null ? "" : "&after=" + URLEncoder.encode(after, StandardCharsets.UTF_8)),
+                        + (after == null
+                                ? ""
+                                : "&afterCreatedAt="
+                                        + URLEncoder.encode(after.createdAt().toString(), StandardCharsets.UTF_8)
+                                        + "&afterId=" + after.id()),
                 "");
         assertEquals(200, response.code(), "B009 페이지 응답: " + response.body());
         assertTrue(response.body().path("entries").isArray());
@@ -34,11 +40,14 @@ class OrderWindowTest extends CommerceHttpSupport {
         return response.body();
     }
 
-    private String next(JsonNode page) {
+    private OrderCursor next(JsonNode page) {
         var next = page.path("next");
         if (next.isNull()) return null;
-        assertTrue(next.isTextual() && !next.asText().isBlank());
-        return next.asText();
+        assertTrue(next.isObject());
+        assertTrue(next.path("createdAt").isTextual());
+        assertTrue(next.path("id").isIntegralNumber());
+        return new OrderCursor(
+                Instant.parse(next.path("createdAt").asText()), next.path("id").asLong());
     }
 
     private List<Long> ids(JsonNode page) {
@@ -115,7 +124,7 @@ class OrderWindowTest extends CommerceHttpSupport {
         var expected = data().seed(11).stream().map(OrderPagingFixture.Row::id).toList();
         for (int size : new int[] {1, 4}) {
             var seen = new ArrayList<Long>();
-            String token = null;
+            OrderCursor token = null;
             for (int guard = 0; guard < 15; guard++) {
                 var current = page(size, token);
                 assertTrue(ids(current).size() <= size);

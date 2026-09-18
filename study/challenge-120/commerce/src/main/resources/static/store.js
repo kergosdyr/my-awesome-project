@@ -4,6 +4,8 @@ const catalog = document.querySelector("#catalog");
 const productDialog = document.querySelector("#product-dialog");
 const ordersDialog = document.querySelector("#orders-dialog");
 let products = [];
+let catalogPage = 0;
+let catalogLoading = false;
 let cart = [];
 let checkingOut = false;
 const cartDialog = document.querySelector("#cart-dialog");
@@ -17,9 +19,23 @@ function toast(message) {
   toastTimer = setTimeout(() => { element.hidden = true; }, 5000);
 }
 
-async function loadCatalog() {
+async function loadCatalog(append = false) {
+  if (catalogLoading) return;
+  catalogLoading = true;
+  const more = document.querySelector("#more-products");
+  more.disabled = true;
   try {
-    products = await api("/api/products");
+    let lastPage;
+    let loaded = append ? [...products] : [];
+    const targetPage = append ? catalogPage + 1 : catalogPage;
+    for (let page = append ? targetPage : 0; page <= targetPage; page++) {
+      lastPage = await api(`/api/products?page=${page}&size=20`);
+      loaded.push(...lastPage);
+    }
+    products = loaded;
+    document.querySelector("#catalog-count").textContent = String(products.length).padStart(2, "0");
+    catalogPage = targetPage;
+    more.hidden = lastPage.length < 20;
     catalog.innerHTML = products.map(product => `
       <button class="product-card" data-product="${product.id}">
         <div class="product-art"><span class="category">${escapeHtml(product.category)}</span><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" loading="lazy"><span class="card-arrow">↗</span></div>
@@ -28,9 +44,13 @@ async function loadCatalog() {
       </button>`).join("");
   } catch (error) {
     catalog.innerHTML = `<p class="error">${escapeHtml(error.message)} <button id="retry-catalog">다시 시도</button></p>`;
-    document.querySelector("#retry-catalog").onclick = loadCatalog;
+    document.querySelector("#retry-catalog").onclick = () => loadCatalog();
+  } finally {
+    catalogLoading = false;
+    more.disabled = false;
   }
 }
+document.querySelector("#more-products").onclick = () => loadCatalog(true);
 
 function openProduct(id) {
   if (checkingOut) { toast("주문 처리가 끝난 뒤 상품을 추가해 주세요."); return; }
@@ -83,11 +103,27 @@ function openProduct(id) {
 }
 
 const labels = { UNPAID: "결제 전", PENDING: "승인 확인 중", PAID: "결제 완료" };
-async function loadOrders() {
+let ordersPage = 0;
+let ordersRequest = 0;
+async function loadOrders(page = ordersPage) {
   const container = document.querySelector("#orders");
+  const requestId = ++ordersRequest;
+  const previous = document.querySelector("#previous-orders");
+  const next = document.querySelector("#next-orders");
+  const status = document.querySelector("#orders-page-status");
+  previous.disabled = next.disabled = true;
+  container.setAttribute("aria-busy", "true");
+  status.textContent = "주문을 불러오는 중…";
   try {
-    const orders = await api("/api/orders");
-    document.querySelector("#order-count").textContent = orders.length;
+    const result = await api(`/api/orders?page=${page}&size=20`);
+    if (requestId !== ordersRequest) return;
+    const orders = result.entries;
+    if (ordersPage !== result.page) ordersDialog.scrollTop = 0;
+    ordersPage = result.page;
+    previous.disabled = ordersPage === 0;
+    next.disabled = !result.hasNext;
+    status.textContent = `${ordersPage + 1}페이지 · ${orders.length}건`;
+
     container.innerHTML = orders.length ? orders.map(({ order, paymentStatus, approvalId }) => `
       <article class="order-card">
         <div class="order-top"><span>ORDER ${String(order.id).padStart(5, "0")}</span><span class="status ${paymentStatus.toLowerCase()}">${labels[paymentStatus] ?? escapeHtml(paymentStatus)}</span></div>
@@ -97,13 +133,17 @@ async function loadOrders() {
         <p class="error" id="payment-error-${order.id}" role="alert"></p>
       </article>`).join("") : '<div class="empty"><span>아직, 첫 번째 선택을 기다려요.</span><p>마음에 드는 상품을 골라보세요.</p><button class="primary" data-close="orders-dialog">컬렉션 둘러보기 →</button></div>';
   } catch (error) {
+    if (requestId !== ordersRequest) return;
     container.innerHTML = `<p class="error">${escapeHtml(error.message)}</p>`;
+    status.textContent = "불러오지 못했습니다. 새로고침해 주세요.";
+  } finally {
+    if (requestId === ordersRequest) container.setAttribute("aria-busy", "false");
   }
 }
 
 async function openOrders() {
   if (!ordersDialog.open) ordersDialog.showModal();
-  await loadOrders();
+  await loadOrders(0);
 }
 
 async function pay(button) {
@@ -130,7 +170,9 @@ document.addEventListener("click", event => {
   if (payment) pay(payment);
 });
 document.querySelector("#open-orders").onclick = openOrders;
-document.querySelector("#refresh-orders").onclick = loadOrders;
+document.querySelector("#refresh-orders").onclick = () => loadOrders(0);
+document.querySelector("#previous-orders").onclick = () => loadOrders(ordersPage - 1);
+document.querySelector("#next-orders").onclick = () => loadOrders(ordersPage + 1);
 
 
 function renderCart() {
@@ -168,7 +210,10 @@ document.querySelector("#refresh-cart").onclick = async () => {
   checkingOut = true;
   renderCart();
   try {
-    const current = await api("/api/products");
+    const current = [];
+    for (let page = 0; page <= catalogPage; page++) {
+      current.push(...await api(`/api/products?page=${page}&size=20`));
+    }
     const refreshed = cart.map(item => {
       const product = current.find(product => product.options.some(option => option.id === item.optionId));
       const option = product?.options.find(option => option.id === item.optionId);

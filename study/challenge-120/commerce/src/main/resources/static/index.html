@@ -15,7 +15,7 @@
     <nav aria-label="주 메뉴">
       <a href="#collection">컬렉션</a>
       <button class="text-button" id="open-cart">장바구니 <span id="cart-count">0</span></button>
-      <button class="text-button" id="open-orders">주문 내역 <span id="order-count">0</span></button>
+      <button class="text-button" id="open-orders">주문 내역</button>
     </nav>
     <span class="header-note">INDEPENDENT GOODS · SEOUL</span>
   </header>
@@ -35,8 +35,9 @@
       </div>
     </section>
     <section class="collection" id="collection" aria-labelledby="collection-title">
-      <div class="section-heading"><div><p class="eyebrow">ESSENTIALS, RECONSIDERED</p><h2 id="collection-title">지금, 필요한 것들<span>03</span></h2></div><span class="section-note">덜어낼수록 선명해지는 취향</span></div>
+      <div class="section-heading"><div><p class="eyebrow">ESSENTIALS, RECONSIDERED</p><h2 id="collection-title">지금, 필요한 것들<span id="catalog-count">00</span></h2></div><span class="section-note">덜어낼수록 선명해지는 취향</span></div>
       <div id="catalog" class="product-grid" aria-live="polite"><p>컬렉션을 불러오고 있습니다.</p></div>
+      <button class="text-button" id="more-products" hidden>상품 더 보기</button>
     </section>
     <section class="editorial"><span class="eyebrow">OUR POINT OF VIEW</span><p>유행보다 쓰임을.<br><em>더 많이보다, 더 자주.</em></p><span>좋아하는 것들로 채우는 일상.<br>FORM은 그 작은 선택에서 시작합니다.</span></section>
   </main>
@@ -48,6 +49,11 @@
   <dialog id="orders-dialog" class="orders-dialog" aria-labelledby="orders-title">
     <div class="drawer-heading"><div><p class="eyebrow">YOUR SELECTIONS</p><h2 id="orders-title">주문 내역</h2></div><button class="close" data-close="orders-dialog" aria-label="주문 내역 닫기">✕</button></div>
     <div class="orders-toolbar"><span>이 실행 환경에서 만든 주문</span><button class="text-button" id="refresh-orders">새로고침 ↻</button></div>
+    <nav class="orders-pagination" aria-label="주문 내역 페이지">
+      <button class="text-button" id="previous-orders" disabled>이전</button>
+      <span id="orders-page-status" role="status">1페이지</span>
+      <button class="text-button" id="next-orders" disabled>다음</button>
+    </nav>
     <div id="orders" aria-live="polite"></div>
   </dialog>
   <dialog id="cart-dialog" class="orders-dialog" aria-labelledby="cart-title">

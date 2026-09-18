@@ -17,7 +17,7 @@
 - 문서·지시 수정: 변경 부분과 링크·구문만 확인한다. 앱 빌드나 브라우저 실행을 자동으로 추가하지 않는다.
 - 코드 수정: 먼저 관련 테스트를 실행한다. 영역 전체에 영향이 있으면 `make check-study`, `make check-blog` 중 필요한 것을 선택한다.
 - 배포·번들·설정 영향: 블로그는 `make build-blog`, 공부 예제는 해당 Gradle 빌드를 추가한다. 전체 검증이 필요하면 `make verify`를 한 번 실행한다. CI의 필수 검사는 유지한다.
-- `make test`는 coding 모듈 전체 과제를 실행한다. `make check-study`는 두 모듈 컴파일·완료 코딩28개·활성 커머스28개를 검사한다. 전체 과제는 챌린지 루트의 `./gradlew test --continue`로 실행하며 미완성 실패를 감추지 않는다. `npm ci`는 최초 설정 또는 의존성 변경 때 `make setup-blog`로 분리한다.
+- `make test`는 coding 모듈 전체 과제를 실행한다. `make check-study`는 두 모듈 컴파일·완료 코딩28개·활성 커머스43개를 검사한다. 전체 과제는 챌린지 루트의 `./gradlew test --continue`로 실행하며 미완성 실패를 감추지 않는다. `npm ci`는 최초 설정 또는 의존성 변경 때 `make setup-blog`로 분리한다.
 - UI 변경은 영향받는 흐름과 화면 크기를 확인한다.
 - 검증은 변경 범위에 맞게 수행하고, 관련 변경이나 실패가 없으면 반복하지 않는다.
 
@@ -51,3 +51,25 @@
 
 - Service·Reader·Saver·Repository·Gateway 등의 필드와 주입 파라미터는 타입의 역할이 드러나는 lowerCamelCase로 쓴다. 예: `OrderReader orderReader`, `PaymentRepository paymentRepository`, `OrderJpaRepository orderJpaRepository`.
 - 협력 객체를 `orders`, `payments`, `products`, `service`, `queries`, `pg`처럼 줄이지 않는다. 실제 여러 데이터를 담는 컬렉션에는 복수형 이름을 사용할 수 있다. 테스트의 주입 객체에도 동일하게 적용한다.
+
+## 기본 목록 조회 — 2026-09-18 사용자 정정
+
+- 데이터가 계속 늘어나는 주문 등 목록은 제공 환경부터 기본·최대 페이지 크기와 DB 조회 제한을 갖춘다. 전체 조회를 실제 API·화면에 남겨 두고 그 수정을 학습 과제로 넘기지 않는다.
+- SQL 횟수만으로 효율성을 판정하지 않는다. 반환량·엔티티 적재량을 함께 확인하고, 컬렉션 fetch join 뒤 메모리에서 잘라 반환하는 페이지네이션을 피한다.
+- 기본 페이지네이션은 완성해 제공하고, 깊은 페이지·동시 삽입·실행계획·인덱스 선택을 추가 학습 대상으로 구분한다.
+
+## Entity 조합 조회 — 2026-09-18 사용자 정정
+
+- 여러 Entity의 조회 조합은 가능한 경우 infra의 명시적 조인으로 처리한다. 조회 편의만을 위해 JPA 연관관계·cascade를 추가하지 않으며 생명주기가 함께 관리되는 기존 관계는 유지한다.
+- 저장소 인터페이스와 필요한 Entity 묶음 Result는 업무 영역에 둘 수 있다. infra는 이를 구현·반환하고, 서비스는 트랜잭션과 Entity 상태 변경·업무 판단을 맡는다.
+- 기존 Result에 Entity를 그대로 담는 방식을 우선한다. 동일 데이터를 가진 JpaResult/DomainResult/ServiceResult를 계층마다 추가해 왕복 변환하지 않는다. API 응답 DTO 경계는 유지한다.
+
+## QueryDSL 조회 — 2026-09-18 사용자 정정
+
+- 주문·상품 등의 커스텀 JPA 조회는 QueryDSL과 생성된 Q클래스로 작성한다. 문자열 HQL/JPQL 및 문자열 별칭으로 Entity 조합 조회를 구현하지 않는다. 조건·JOIN·정렬·결과 접근을 Q타입으로 표현해 컴파일 시 검사할 수 있게 한다.
+- Q클래스는 annotation processor로 생성하고 직접 작성하거나 버전 관리하지 않는다. QueryDSL·JPAQueryFactory는 infra에 둔다.
+
+## 백엔드 과제 입력 규격 — 2026-09-18 사용자 정정
+
+- 조회·인덱스 학습 과제는 HTTP 입력·응답과 날짜/ID 타입을 먼저 확정해 제공한다. 임의 문자열 커서 형식·인코딩·파싱 설계를 사용자에게 떠넘기지 않는다. B009는 afterCreatedAt(Instant)·afterId(Long)를 각각 받고 서비스에는 OrderCursor를 전달한다.
+- 제공 코드 연결만으로 설계 학습이 되었다고 평가하지 않는다. 직접 결정할 조회 조건·인덱스와 관찰할 결과를 분명히 설명하고, 사용자 풀이를 대신 완성하지 않는다.

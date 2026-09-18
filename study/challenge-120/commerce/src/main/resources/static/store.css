@@ -139,3 +139,8 @@ pre { background: #25281f; color: #e6ead9; padding: 20px; overflow: auto; font-s
 }
 #cart-dialog .order-item strong { display: inline-block; margin-right: 12px; }
 #cart-dialog #refresh-cart { margin-bottom: 14px; }
+
+.orders-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 16px; }
+.orders-pagination button { min-height: 44px; min-width: 44px; }
+.orders-pagination button:disabled { opacity: .4; cursor: default; }
+#orders-page-status { font-size: 13px; }

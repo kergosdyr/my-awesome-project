@@ -44,6 +44,7 @@ class MultiItemOrderTest extends PriceExperimentSupport {
                 2,
                 request("GET", "/api/orders", "")
                         .body()
+                        .path("entries")
                         .get(0)
                         .path("order")
                         .path("items")

@@ -10,6 +10,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("io.github.openfeign.querydsl:querydsl-jpa:7.1")
+    annotationProcessor(platform("org.springframework.boot:spring-boot-dependencies:4.1.0"))
+    annotationProcessor("io.github.openfeign.querydsl:querydsl-apt:7.1:jpa")
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
     runtimeOnly("com.h2database:h2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.awaitility:awaitility")
@@ -31,6 +35,10 @@ tasks.register<Test>("ciTest") {
         includeTestsMatching("challenge.commerce.OrderResponseContractTest")
         includeTestsMatching("challenge.commerce.EntityReadBoundaryTest")
         includeTestsMatching("challenge.commerce.MultiItemOrderTest")
+        includeTestsMatching("challenge.commerce.OrderPageTest")
+        includeTestsMatching("challenge.commerce.OrderEntityJoinTest")
+        includeTestsMatching("challenge.commerce.OrderWindowContractTest")
+        includeTestsMatching("challenge.commerce.ProductEntityJoinTest")
     }
 }
 tasks.register<Test>("priceExperiment") {

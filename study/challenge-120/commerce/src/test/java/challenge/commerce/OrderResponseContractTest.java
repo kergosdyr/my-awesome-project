@@ -30,7 +30,9 @@ class OrderResponseContractTest extends CommerceHttpSupport {
         assertEquals(order, detail.body().path("order"));
         assertEquals("UNPAID", detail.body().path("paymentStatus").asText());
         assertTrue(detail.body().path("approvalId").isNull());
-        assertEquals(detail.body(), request("GET", "/api/orders", "").body().get(0));
+        assertEquals(
+                detail.body(),
+                request("GET", "/api/orders", "").body().path("entries").get(0));
     }
 
     @Test
@@ -44,6 +46,7 @@ class OrderResponseContractTest extends CommerceHttpSupport {
         assertEquals(3, detail.size());
         assertEquals("PAID", detail.path("paymentStatus").asText());
         assertEquals(receipt.path("approvalId"), detail.path("approvalId"));
-        assertEquals(detail, request("GET", "/api/orders", "").body().get(0));
+        assertEquals(
+                detail, request("GET", "/api/orders", "").body().path("entries").get(0));
     }
 }

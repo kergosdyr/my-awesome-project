@@ -1,17 +1,13 @@
 package challenge.commerce.domain.catalog;
 
-import challenge.commerce.infra.db.ProductEntity;
-import challenge.commerce.infra.db.ProductOptionEntity;
+import challenge.commerce.domain.query.PageQuery;
 import java.util.List;
+import java.util.Map;
 
 public interface ProductRepository {
-    List<ProductEntity> findAll();
+    List<ProductResult> findPage(PageQuery query);
 
-    List<ProductOptionEntity> findAllOptions();
-
-    List<ProductEntity> findByIds(List<Long> ids);
-
-    List<ProductOptionEntity> findOptionsByIds(List<Long> ids);
+    Map<Long, ProductSelectionResult> findSelections(List<Long> optionIds);
 
     boolean takeStock(long optionId, int quantity);
 }

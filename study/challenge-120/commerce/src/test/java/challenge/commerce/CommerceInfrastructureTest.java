@@ -128,7 +128,7 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
                 129000,
                 fakePaymentGateway.lookup(String.valueOf(id)).orElseThrow().amount());
         assertEquals("PAID", details(id).body().get("paymentStatus").asText());
-        assertEquals(1, request("GET", "/api/orders", "").body().size());
+        assertEquals(1, request("GET", "/api/orders", "").body().path("entries").size());
     }
 
     @Test

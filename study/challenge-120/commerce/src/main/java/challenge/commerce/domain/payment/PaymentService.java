@@ -32,9 +32,9 @@ public class PaymentService {
 
     @Transactional
     public PaymentResult pay(long orderId) {
-        var order = orderReader.read(orderId);
-        long amount = order.totalAmount();
-        var optionalPayment = paymentReader.readByOrderId(orderId);
+        var details = orderReader.readDetails(orderId);
+        long amount = details.order().totalAmount();
+        var optionalPayment = Optional.ofNullable(details.payment());
         if (optionalPayment.isPresent()) {
             return optionalPayment
                     .filter(PaymentEntity::isPaid)

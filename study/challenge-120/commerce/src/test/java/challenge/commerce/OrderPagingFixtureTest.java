@@ -21,8 +21,8 @@ class OrderPagingFixtureTest extends CommerceHttpSupport {
                 .seed(11).stream().collect(Collectors.toMap(OrderPagingFixture.Row::id, Function.identity()));
         var response = request("GET", "/api/orders", "");
         assertEquals(200, response.code());
-        assertEquals(11, response.body().size());
-        for (var entry : response.body()) {
+        assertEquals(11, response.body().path("entries").size());
+        for (var entry : response.body().path("entries")) {
             var order = entry.path("order");
             long id = order.path("id").asLong();
             assertEquals(

@@ -42,7 +42,7 @@
 
 Spring Boot·JPA를 기본으로 한다. Controller는 API 요청/응답을 변환하고 서비스가 트랜잭션과 업무 흐름을 소유한다. Reader·Saver 등은 조합 가능한 객체이며 불필요한 interface/Impl을 만들지 않는다.
 
-**JPA Entity는 유일한 infra 격리 예외다.** Service·Reader·Saver·Validator 등 업무 객체 전체와 API 응답 매퍼에서 공유한다. 순수 업무 복제 모델·왕복 변환을 만들지 않는다. JpaRepository·EntityManager·쿼리·DB 설정은 infra에 둔다. HTTP 응답은 별도 DTO다. 의미 있는 여러 객체 조합·계산 결과에만 Result를 둔다. Optional은 반환형으로만 사용하고 파라미터로 받지 않는다.
+**JPA Entity는 유일한 infra 격리 예외다.** Service·Reader·Saver·Validator 등 업무 객체 전체와 API 응답 매퍼에서 공유한다. 순수 업무 복제 모델·왕복 변환을 만들지 않는다. JpaRepository·EntityManager·쿼리·DB 설정은 infra에 둔다. HTTP 응답은 별도 DTO다. 의미 있는 여러 객체 조합·계산 결과에만 Result를 둔다. 조회 조합은 가능한 경우 infra의 명시적 조인으로 처리하고 기존 Result에 Entity를 그대로 담아 반환한다. 서비스·Reader에서 별도 목록을 읽어 합치거나 동일한 계층별 Result를 늘리지 않는다. 업무 판단·Entity 상태 변경은 서비스 트랜잭션에 남긴다. Optional은 반환형으로만 사용하고 파라미터로 받지 않는다.
 
 OSIV=false를 유지하며 응답에 필요한 데이터는 명시적으로 조회한다. 서비스에 검증용 flush/latch/callback/수동 트랜잭션을 넣지 않는다. 장애·동시성 장치는 테스트나 도구에 둔다. Palantir Java Format2.96.0을 유지한다.
 

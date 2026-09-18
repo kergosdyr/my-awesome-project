@@ -42,22 +42,23 @@ class EntityReadBoundaryTest extends CommerceHttpSupport {
     }
 
     @Test
-    void ordersAndPaymentsRemainTwoBatchReads() throws Exception {
+    void ordersAndPaymentsRemainBoundedBatchReads() throws Exception {
         var statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         boolean enabled = statistics.isStatisticsEnabled();
         statistics.setStatisticsEnabled(true);
         try {
             assertEquals(200, pay(multiOrder()).code());
             statistics.clear();
-            assertEquals(1, request("GET", "/api/orders", "").body().size());
+            assertEquals(
+                    1, request("GET", "/api/orders", "").body().path("entries").size());
             assertEquals(2, statistics.getPrepareStatementCount());
             multiOrder();
             multiOrder();
             statistics.clear();
             var result = request("GET", "/api/orders", "");
             assertEquals(200, result.code());
-            assertEquals(3, result.body().size());
-            for (var detail : result.body())
+            assertEquals(3, result.body().path("entries").size());
+            for (var detail : result.body().path("entries"))
                 assertEquals(2, detail.path("order").path("items").size());
             assertEquals(2, statistics.getPrepareStatementCount(), "주문 수만큼 결제를 개별 조회하지 않는다");
         } finally {

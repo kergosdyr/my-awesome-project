@@ -1,8 +1,8 @@
 package challenge.commerce.domain.order;
 
+import challenge.commerce.domain.query.PageQuery;
 import challenge.commerce.infra.db.OrderEntity;
 import challenge.commerce.support.BusinessException;
-import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +19,15 @@ public class OrderReader {
         return orderRepository.findById(id).orElseThrow(() -> BusinessException.notFound("주문을 찾을 수 없습니다."));
     }
 
-    public List<OrderEntity> readAll() {
-        return orderRepository.findAll();
+    public OrderDetailsResult readDetails(long id) {
+        return orderRepository.findDetailsById(id).orElseThrow(() -> BusinessException.notFound("주문을 찾을 수 없습니다."));
+    }
+
+    public OrderPageResult readPage(PageQuery query) {
+        return orderRepository.findPage(query);
+    }
+
+    public OrderWindowResult readCursor(int size, OrderCursor cursor) {
+        return orderRepository.findCursor(size, cursor);
     }
 }
