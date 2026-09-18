@@ -46,3 +46,8 @@
 - 과제 문서는 `C007-주제.md` / `B007-주제.md`처럼 파일명·첫 제목에 식별자를 붙이고 코딩·백엔드를 분리한다.
 - 백엔드는 정해진 조건문을 채우는 과제를 반복하지 않는다. 사용자가 설계를 선택하고 결과 차이를 관찰할 수 있는 작은 사건·실험을 먼저 설계한다. 기존 과제의 완료 조건을 뒤늦게 늘리지 않는다.
 - 학습 세션·장부·사용자 코드는 보존하며 종료한 실행 환경·중복 지시·이전 마이그레이션 문서는 정리한다.
+
+## 협력 객체 이름 — 2026-09-18 사용자 정정
+
+- Service·Reader·Saver·Repository·Gateway 등의 필드와 주입 파라미터는 타입의 역할이 드러나는 lowerCamelCase로 쓴다. 예: `OrderReader orderReader`, `PaymentRepository paymentRepository`, `OrderJpaRepository orderJpaRepository`.
+- 협력 객체를 `orders`, `payments`, `products`, `service`, `queries`, `pg`처럼 줄이지 않는다. 실제 여러 데이터를 담는 컬렉션에는 복수형 이름을 사용할 수 있다. 테스트의 주입 객체에도 동일하게 적용한다.

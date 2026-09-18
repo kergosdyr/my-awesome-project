@@ -7,13 +7,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @Transactional
 public class PaymentSaver {
-    private final PaymentRepository payments;
+    private final PaymentRepository paymentRepository;
 
-    public PaymentSaver(PaymentRepository payments) {
-        this.payments = payments;
+    public PaymentSaver(PaymentRepository paymentRepository) {
+        this.paymentRepository = paymentRepository;
     }
 
     public PaymentEntity create(long orderId, String key, long amount, PaymentEntity.Status status, String approvalId) {
-        return payments.create(new PaymentEntity(null, orderId, key, amount, status, approvalId));
+        return paymentRepository.create(new PaymentEntity(null, orderId, key, amount, status, approvalId));
     }
 }

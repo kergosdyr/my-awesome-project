@@ -9,13 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @Transactional
 public class OrderSaver {
-    private final OrderRepository orders;
+    private final OrderRepository orderRepository;
 
-    public OrderSaver(OrderRepository orders) {
-        this.orders = orders;
+    public OrderSaver(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
     }
 
     public OrderEntity create(List<OrderItemEntity> items) {
-        return orders.create(OrderEntity.place(items));
+        return orderRepository.create(OrderEntity.place(items));
     }
 }

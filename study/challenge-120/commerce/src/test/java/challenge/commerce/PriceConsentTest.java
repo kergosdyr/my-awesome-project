@@ -25,7 +25,7 @@ class PriceConsentTest extends PriceExperimentSupport {
         assertEquals(201, reply.code());
         assertEquals(58000, reply.body().path("totalAmount").asLong());
         assertEquals(29000, reply.body().path("items").get(0).path("unitPrice").asLong());
-        assertEquals(1, orders.count());
+        assertEquals(1, orderJpaRepository.count());
         assertEquals(18, stock());
     }
 
@@ -38,7 +38,7 @@ class PriceConsentTest extends PriceExperimentSupport {
         } else {
             assertEquals(201, reply.code());
             assertEquals(58000, reply.body().path("totalAmount").asLong(), "새 서버 가격을 적용한다");
-            assertEquals(1, orders.count());
+            assertEquals(1, orderJpaRepository.count());
             assertEquals(18, stock());
         }
     }
@@ -52,7 +52,7 @@ class PriceConsentTest extends PriceExperimentSupport {
         var reply = buy(newPrice, 1);
         assertEquals(201, reply.code());
         assertEquals(39000, reply.body().path("totalAmount").asLong());
-        assertEquals(1, orders.count());
+        assertEquals(1, orderJpaRepository.count());
         assertEquals(19, stock());
     }
 
@@ -71,7 +71,9 @@ class PriceConsentTest extends PriceExperimentSupport {
         price(39000);
         assertEquals(200, pay(id).code());
         assertEquals(58000, details(id).body().path("order").path("totalAmount").asLong());
-        assertEquals(58000, gateway.lookup(String.valueOf(id)).orElseThrow().amount());
+        assertEquals(
+                58000,
+                fakePaymentGateway.lookup(String.valueOf(id)).orElseThrow().amount());
         assertEquals(18, stock());
     }
 
@@ -81,7 +83,7 @@ class PriceConsentTest extends PriceExperimentSupport {
                 400,
                 request("POST", "/api/orders", "{\"items\":[{\"optionId\":201,\"quantity\":1}]}")
                         .code());
-        assertEquals(0, orders.count());
+        assertEquals(0, orderJpaRepository.count());
         assertEquals(20, stock());
     }
 }

@@ -26,8 +26,9 @@ class EntityReadBoundaryTest extends CommerceHttpSupport {
             assertEquals(3, small.body().size());
             assertEquals(2, statistics.getPrepareStatementCount());
             for (int id = 4; id <= 13; id++) {
-                products.save(new ProductEntity(id, "FORM", "Extra", "Description", "TOP", 1000, "/images/tee.svg"));
-                options.save(new ProductOptionEntity(id * 100L, id, "White", "M", 10));
+                productJpaRepository.save(
+                        new ProductEntity(id, "FORM", "Extra", "Description", "TOP", 1000, "/images/tee.svg"));
+                productOptionJpaRepository.save(new ProductOptionEntity(id * 100L, id, "White", "M", 10));
             }
             statistics.clear();
             var large = request("GET", "/api/products", "");

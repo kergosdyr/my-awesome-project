@@ -9,17 +9,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @Transactional(readOnly = true)
 public class OrderReader {
-    private final OrderRepository orders;
+    private final OrderRepository orderRepository;
 
-    public OrderReader(OrderRepository orders) {
-        this.orders = orders;
+    public OrderReader(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
     }
 
     public OrderEntity read(long id) {
-        return orders.findById(id).orElseThrow(() -> BusinessException.notFound("주문을 찾을 수 없습니다."));
+        return orderRepository.findById(id).orElseThrow(() -> BusinessException.notFound("주문을 찾을 수 없습니다."));
     }
 
     public List<OrderEntity> readAll() {
-        return orders.findAll();
+        return orderRepository.findAll();
     }
 }

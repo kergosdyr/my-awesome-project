@@ -10,17 +10,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @Transactional(readOnly = true)
 public class PaymentReader {
-    private final PaymentRepository payments;
+    private final PaymentRepository paymentRepository;
 
-    public PaymentReader(PaymentRepository payments) {
-        this.payments = payments;
+    public PaymentReader(PaymentRepository paymentRepository) {
+        this.paymentRepository = paymentRepository;
     }
 
     public List<PaymentEntity> readForOrders(Collection<Long> orderIds) {
-        return orderIds.isEmpty() ? List.of() : payments.findByOrderIds(orderIds);
+        return orderIds.isEmpty() ? List.of() : paymentRepository.findByOrderIds(orderIds);
     }
 
     public Optional<PaymentEntity> readByOrderId(long orderId) {
-        return payments.findByOrderId(orderId);
+        return paymentRepository.findByOrderId(orderId);
     }
 }

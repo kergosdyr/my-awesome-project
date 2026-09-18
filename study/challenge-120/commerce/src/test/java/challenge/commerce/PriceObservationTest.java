@@ -19,12 +19,12 @@ class PriceObservationTest extends PriceExperimentSupport {
         assertTrue(late.code() == 201 || late.code() == 409, "HTTP 실험 환경 또는 구현 오류");
         System.out.printf(
                 "%n[할인 종료] 화면 가격=%d, 현재 가격=39000, 늦은 주문 HTTP=%d%n본문=%s%n주문 수=%d, 남은 재고=%d%n",
-                seen, late.code(), late.body(), orders.count(), stock());
+                seen, late.code(), late.body(), orderJpaRepository.count(), stock());
         assertEquals(200, pay(id).code());
         System.out.printf(
                 "[기존 주문 결제] 주문 금액=%d, PG 승인 금액=%d%n",
                 details(id).body().path("order").path("totalAmount").asLong(),
-                gateway.lookup(String.valueOf(id)).orElseThrow().amount());
+                fakePaymentGateway.lookup(String.valueOf(id)).orElseThrow().amount());
         price(19000);
         var cheaper = buy(seen, 1);
         assertTrue(cheaper.code() == 201 || cheaper.code() == 409);

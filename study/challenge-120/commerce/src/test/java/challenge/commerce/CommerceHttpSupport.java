@@ -42,37 +42,37 @@ abstract class CommerceHttpSupport {
     int port;
 
     @Autowired
-    PaymentJpaRepository payments;
+    PaymentJpaRepository paymentJpaRepository;
 
     @Autowired
-    challenge.commerce.domain.payment.PaymentRepository paymentStore;
+    challenge.commerce.domain.payment.PaymentRepository paymentRepository;
 
     @Autowired
-    OrderJpaRepository orders;
+    OrderJpaRepository orderJpaRepository;
 
     @Autowired
-    ProductOptionJpaRepository options;
+    ProductOptionJpaRepository productOptionJpaRepository;
 
     @Autowired
-    ProductJpaRepository products;
+    ProductJpaRepository productJpaRepository;
 
     @Autowired
-    CatalogFixture fixture;
+    CatalogFixture catalogFixture;
 
     @Autowired
-    FakePaymentGateway gateway;
+    FakePaymentGateway fakePaymentGateway;
 
     final HttpClient client = HttpClient.newHttpClient();
     final JsonMapper json = JsonMapper.builder().build();
 
     @BeforeEach
     void reset() {
-        payments.deleteAll();
-        orders.deleteAll();
-        options.deleteAll();
-        products.deleteAll();
-        fixture.run();
-        gateway.reset();
+        paymentJpaRepository.deleteAll();
+        orderJpaRepository.deleteAll();
+        productOptionJpaRepository.deleteAll();
+        productJpaRepository.deleteAll();
+        catalogFixture.run();
+        fakePaymentGateway.reset();
     }
 
     record Reply(int code, JsonNode body) {}

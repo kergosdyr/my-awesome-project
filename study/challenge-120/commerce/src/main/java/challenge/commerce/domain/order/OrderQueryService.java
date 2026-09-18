@@ -11,18 +11,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderQueryService {
-    private final OrderReader orders;
-    private final PaymentReader payments;
+    private final OrderReader orderReader;
+    private final PaymentReader paymentReader;
 
-    public OrderQueryService(OrderReader orders, PaymentReader payments) {
-        this.orders = orders;
-        this.payments = payments;
+    public OrderQueryService(OrderReader orderReader, PaymentReader paymentReader) {
+        this.orderReader = orderReader;
+        this.paymentReader = paymentReader;
     }
 
     @Transactional(readOnly = true)
     public OrderDetailsResult find(long id) {
-        var order = orders.read(id);
-        return payments.readByOrderId(id)
+        var order = orderReader.read(id);
+        return paymentReader
+                .readByOrderId(id)
                 .map(payment -> OrderDetailsResult.withPayment(order, payment))
                 .orElseGet(() -> OrderDetailsResult.withoutPayment(order));
     }
@@ -41,8 +42,8 @@ public class OrderQueryService {
 
     @Transactional(readOnly = true)
     public List<OrderDetailsResult> list() {
-        var allOrders = orders.readAll();
-        var paymentByOrder = payments
+        var allOrders = orderReader.readAll();
+        var paymentByOrder = paymentReader
                 .readForOrders(allOrders.stream().map(OrderEntity::id).toList())
                 .stream()
                 .collect(Collectors.toMap(PaymentEntity::orderId, Function.identity()));

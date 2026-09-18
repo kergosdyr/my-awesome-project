@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 /** 금액의 합·범위·비례 배분을 검사한다. 잔돈을 어느 옵션에 먼저 줄지는 강요하지 않는다. */
 class CouponRefundPlanTest {
-    private final CouponRefundPlanner planner = new CouponRefundPlanner();
+    private final CouponRefundPlanner couponRefundPlanner = new CouponRefundPlanner();
 
     @Test
     @Tag("minimum")
@@ -102,7 +102,7 @@ class CouponRefundPlanTest {
     }
 
     private CouponRefundPlanResult checked(List<CouponLineCommand> lines, long coupon) {
-        var result = planner.plan(new CouponRefundCommand(lines, coupon));
+        var result = couponRefundPlanner.plan(new CouponRefundCommand(lines, coupon));
         assertNotNull(result);
         var actual = byOption(result);
         assertEquals(lines.size(), result.lines().size());

@@ -13,27 +13,27 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @Transactional(readOnly = true)
 public class ProductReader {
-    private final ProductRepository products;
+    private final ProductRepository productRepository;
 
-    public ProductReader(ProductRepository products) {
-        this.products = products;
+    public ProductReader(ProductRepository productRepository) {
+        this.productRepository = productRepository;
     }
 
     public List<ProductResult> readAll() {
-        var optionsByProduct =
-                products.findAllOptions().stream().collect(Collectors.groupingBy(ProductOptionEntity::productId));
-        return products.findAll().stream()
+        var optionsByProduct = productRepository.findAllOptions().stream()
+                .collect(Collectors.groupingBy(ProductOptionEntity::productId));
+        return productRepository.findAll().stream()
                 .map(product -> new ProductResult(product, optionsByProduct.getOrDefault(product.id(), List.of())))
                 .toList();
     }
 
     public Map<Long, ProductSelectionResult> readForOptions(List<Long> optionIds) {
-        var options = products.findOptionsByIds(optionIds);
+        var options = productRepository.findOptionsByIds(optionIds);
         if (options.size() != optionIds.size()) {
             throw BusinessException.notFound("상품 옵션을 찾을 수 없습니다.");
         }
         var productById =
-                products
+                productRepository
                         .findByIds(options.stream()
                                 .map(ProductOptionEntity::productId)
                                 .distinct()

@@ -24,7 +24,7 @@ class MultiItemOrderTest extends PriceExperimentSupport {
         assertEquals(201, created.code());
         var order = created.body();
         long id = order.path("id").asLong();
-        assertEquals(1, orders.count());
+        assertEquals(1, orderJpaRepository.count());
         assertEquals(2, order.path("items").size());
         assertEquals(345000, order.path("totalAmount").asLong());
         assertEquals(258000, order.path("items").get(0).path("totalAmount").asLong());
@@ -35,9 +35,11 @@ class MultiItemOrderTest extends PriceExperimentSupport {
         assertEquals(order, details(id).body().path("order"));
         assertEquals(200, pay(id).code());
         assertEquals(200, pay(id).code());
-        assertEquals(345000, gateway.lookup(String.valueOf(id)).orElseThrow().amount());
-        assertEquals(1, gateway.approvals());
-        assertEquals(1, payments.count());
+        assertEquals(
+                345000,
+                fakePaymentGateway.lookup(String.valueOf(id)).orElseThrow().amount());
+        assertEquals(1, fakePaymentGateway.approvals());
+        assertEquals(1, paymentJpaRepository.count());
         assertEquals(
                 2,
                 request("GET", "/api/orders", "")
@@ -158,9 +160,9 @@ class MultiItemOrderTest extends PriceExperimentSupport {
     }
 
     private void assertNoOrder() {
-        assertEquals(0, orders.count());
+        assertEquals(0, orderJpaRepository.count());
         assertEquals(0, database.queryForObject("select count(*) from store_order_item", Integer.class));
-        assertEquals(0, payments.count());
-        assertEquals(0, gateway.approvals());
+        assertEquals(0, paymentJpaRepository.count());
+        assertEquals(0, fakePaymentGateway.approvals());
     }
 }

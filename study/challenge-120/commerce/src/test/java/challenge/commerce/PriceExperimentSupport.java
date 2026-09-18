@@ -33,10 +33,10 @@ abstract class PriceExperimentSupport extends CommerceHttpSupport {
     void rejectedWithoutChanges(Reply reply) throws Exception {
         assertAll(
                 () -> assertEquals(409, reply.code(), "가격을 다시 확인할 수 있어야 한다"),
-                () -> assertEquals(0, orders.count(), "거절한 주문을 남기지 않는다"),
+                () -> assertEquals(0, orderJpaRepository.count(), "거절한 주문을 남기지 않는다"),
                 () -> assertEquals(20, stock(), "거절한 주문 때문에 재고가 줄지 않는다"),
-                () -> assertEquals(0, payments.count()),
-                () -> assertEquals(0, gateway.approvals()));
+                () -> assertEquals(0, paymentJpaRepository.count()),
+                () -> assertEquals(0, fakePaymentGateway.approvals()));
         assertFalse(reply.body().path("message").asText().isBlank(), "사용자에게 이유를 안내한다");
     }
 }

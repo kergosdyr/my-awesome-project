@@ -7,36 +7,37 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class ProductRepositoryImpl implements ProductRepository {
-    private final ProductJpaRepository products;
-    private final ProductOptionJpaRepository options;
+    private final ProductJpaRepository productJpaRepository;
+    private final ProductOptionJpaRepository productOptionJpaRepository;
 
-    public ProductRepositoryImpl(ProductJpaRepository products, ProductOptionJpaRepository options) {
-        this.products = products;
-        this.options = options;
+    public ProductRepositoryImpl(
+            ProductJpaRepository productJpaRepository, ProductOptionJpaRepository productOptionJpaRepository) {
+        this.productJpaRepository = productJpaRepository;
+        this.productOptionJpaRepository = productOptionJpaRepository;
     }
 
     @Override
     public List<ProductEntity> findAll() {
-        return products.findAll(Sort.by("id"));
+        return productJpaRepository.findAll(Sort.by("id"));
     }
 
     @Override
     public List<ProductOptionEntity> findAllOptions() {
-        return options.findAll(Sort.by("id"));
+        return productOptionJpaRepository.findAll(Sort.by("id"));
     }
 
     @Override
     public List<ProductEntity> findByIds(List<Long> ids) {
-        return products.findAllById(ids);
+        return productJpaRepository.findAllById(ids);
     }
 
     @Override
     public List<ProductOptionEntity> findOptionsByIds(List<Long> ids) {
-        return options.findAllById(ids);
+        return productOptionJpaRepository.findAllById(ids);
     }
 
     @Override
     public boolean takeStock(long id, int quantity) {
-        return options.takeStock(id, quantity) == 1;
+        return productOptionJpaRepository.takeStock(id, quantity) == 1;
     }
 }

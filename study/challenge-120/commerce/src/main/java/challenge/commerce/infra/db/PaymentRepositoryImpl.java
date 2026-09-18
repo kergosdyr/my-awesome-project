@@ -8,24 +8,24 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class PaymentRepositoryImpl implements PaymentRepository {
-    private final PaymentJpaRepository payments;
+    private final PaymentJpaRepository paymentJpaRepository;
 
-    public PaymentRepositoryImpl(PaymentJpaRepository payments) {
-        this.payments = payments;
+    public PaymentRepositoryImpl(PaymentJpaRepository paymentJpaRepository) {
+        this.paymentJpaRepository = paymentJpaRepository;
     }
 
     @Override
     public Optional<PaymentEntity> findByOrderId(long id) {
-        return payments.findByOrderId(id);
+        return paymentJpaRepository.findByOrderId(id);
     }
 
     @Override
     public List<PaymentEntity> findByOrderIds(Collection<Long> orderIds) {
-        return payments.findByOrderIdIn(orderIds);
+        return paymentJpaRepository.findByOrderIdIn(orderIds);
     }
 
     @Override
     public PaymentEntity create(PaymentEntity payment) {
-        return payments.save(payment);
+        return paymentJpaRepository.save(payment);
     }
 }

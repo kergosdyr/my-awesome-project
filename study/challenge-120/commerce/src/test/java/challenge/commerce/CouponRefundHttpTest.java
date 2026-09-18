@@ -24,8 +24,8 @@ class CouponRefundHttpTest extends PriceExperimentSupport {
         assertEquals(86900, total);
         assertEquals(created.body(), details(id).body().path("order"));
         assertEquals(17, stock());
-        assertEquals(0, payments.count());
-        assertEquals(0, gateway.approvals());
+        assertEquals(0, paymentJpaRepository.count());
+        assertEquals(0, fakePaymentGateway.approvals());
     }
 
     @Test

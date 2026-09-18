@@ -9,22 +9,22 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class PaymentController {
-    private final PaymentService payments;
+    private final PaymentService paymentService;
 
-    public PaymentController(PaymentService payments) {
-        this.payments = payments;
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
     }
 
     @PostMapping("/api/orders/{id}/payments")
     public ResponseEntity<PaymentResponse> pay(@PathVariable("id") long id) {
-        var result = payments.pay(id);
+        var result = paymentService.pay(id);
         return ResponseEntity.status(result.status() == PaymentResult.Status.PAID ? 200 : 202)
                 .body(PaymentResponse.from(result));
     }
 
     @PostMapping("/api/payments/notifications")
     public NotificationResponse notify(@Valid @RequestBody NotificationRequest request) {
-        return new NotificationResponse(payments.onNotification(request.toReceipt()));
+        return new NotificationResponse(paymentService.onNotification(request.toReceipt()));
     }
 
     public record NotificationResponse(boolean accepted) {}

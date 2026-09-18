@@ -12,23 +12,23 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
-    private final OrderService orders;
-    private final OrderQueryService queries;
+    private final OrderService orderService;
+    private final OrderQueryService orderQueryService;
 
-    public OrderController(OrderService orders, OrderQueryService queries) {
-        this.orders = orders;
-        this.queries = queries;
+    public OrderController(OrderService orderService, OrderQueryService orderQueryService) {
+        this.orderService = orderService;
+        this.orderQueryService = orderQueryService;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponse create(@Valid @RequestBody CreateOrderRequest request) {
-        return OrderResponse.from(orders.create(request.toCommand()));
+        return OrderResponse.from(orderService.create(request.toCommand()));
     }
 
     @GetMapping
     public List<OrderDetailsResponse> list() {
-        return queries.list().stream().map(OrderDetailsResponse::from).toList();
+        return orderQueryService.list().stream().map(OrderDetailsResponse::from).toList();
     }
 
     @GetMapping("/window")
@@ -38,11 +38,11 @@ public class OrderController {
         if (size < 1 || size > 100) {
             throw challenge.commerce.support.BusinessException.invalid("한 번에 1~100개를 조회하세요.");
         }
-        return challenge.commerce.api.response.OrderWindowResponse.from(queries.window(size, after));
+        return challenge.commerce.api.response.OrderWindowResponse.from(orderQueryService.window(size, after));
     }
 
     @GetMapping("/{id}")
     public OrderDetailsResponse find(@PathVariable("id") long id) {
-        return OrderDetailsResponse.from(queries.find(id));
+        return OrderDetailsResponse.from(orderQueryService.find(id));
     }
 }

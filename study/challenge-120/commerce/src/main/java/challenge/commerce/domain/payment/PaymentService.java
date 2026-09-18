@@ -17,14 +17,17 @@ public class PaymentService {
     private final PaymentReader paymentReader;
     private final PaymentSaver paymentSaver;
     private final OrderReader orderReader;
-    private final PaymentGateway pg;
+    private final PaymentGateway paymentGateway;
 
     public PaymentService(
-            PaymentReader paymentReader, PaymentSaver paymentSaver, OrderReader orderReader, PaymentGateway pg) {
+            PaymentReader paymentReader,
+            PaymentSaver paymentSaver,
+            OrderReader orderReader,
+            PaymentGateway paymentGateway) {
         this.paymentReader = paymentReader;
         this.paymentSaver = paymentSaver;
         this.orderReader = orderReader;
-        this.pg = pg;
+        this.paymentGateway = paymentGateway;
     }
 
     @Transactional
@@ -36,8 +39,11 @@ public class PaymentService {
             return optionalPayment
                     .filter(PaymentEntity::isPaid)
                     .map(payment -> new PaymentResult(PaymentResult.Status.PAID, payment.approvalId()))
-                    .orElseGet(
-                            () -> pg.lookup(String.valueOf(orderId)).filter(PaymentGateway.Receipt::approved).stream()
+                    .orElseGet(() ->
+                            paymentGateway
+                                    .lookup(String.valueOf(orderId))
+                                    .filter(PaymentGateway.Receipt::approved)
+                                    .stream()
                                     .peek(lookupReceipt -> paymentSaver.create(
                                             orderId,
                                             lookupReceipt.key(),
@@ -52,9 +58,9 @@ public class PaymentService {
 
         PaymentGateway.Receipt receipt;
         try {
-            receipt = pg.approve(String.valueOf(orderId), orderId, amount);
+            receipt = paymentGateway.approve(String.valueOf(orderId), orderId, amount);
         } catch (PaymentGateway.ResponseLostException e) {
-            return pg.lookup(String.valueOf(orderId)).filter(PaymentGateway.Receipt::approved).stream()
+            return paymentGateway.lookup(String.valueOf(orderId)).filter(PaymentGateway.Receipt::approved).stream()
                     .peek(lookupReceipt -> paymentSaver.create(
                             orderId,
                             lookupReceipt.key(),

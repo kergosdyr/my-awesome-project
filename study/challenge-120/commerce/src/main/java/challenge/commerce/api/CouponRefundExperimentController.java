@@ -10,15 +10,15 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/dev/orders/{id}/coupon-refund-plan")
 public class CouponRefundExperimentController {
-    private final CouponRefundService service;
+    private final CouponRefundService couponRefundService;
 
-    public CouponRefundExperimentController(CouponRefundService service) {
-        this.service = service;
+    public CouponRefundExperimentController(CouponRefundService couponRefundService) {
+        this.couponRefundService = couponRefundService;
     }
 
     @PostMapping
     public CouponRefundPlanResponse preview(
             @PathVariable("id") long id, @Valid @RequestBody CouponRefundRequest request) {
-        return CouponRefundPlanResponse.from(service.preview(id, request.discountAmount()));
+        return CouponRefundPlanResponse.from(couponRefundService.preview(id, request.discountAmount()));
     }
 }

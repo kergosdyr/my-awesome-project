@@ -11,19 +11,19 @@ import org.springframework.transaction.annotation.Transactional;
 /** 품목별 가격 확인, 재고 확보, 주문 저장을 하나의 트랜잭션으로 처리한다. */
 @Service
 public class OrderService {
-    private final ProductReader products;
-    private final StockAllocator stock;
-    private final OrderSaver orders;
+    private final ProductReader productReader;
+    private final StockAllocator stockAllocator;
+    private final OrderSaver orderSaver;
 
-    public OrderService(ProductReader products, StockAllocator stock, OrderSaver orders) {
-        this.products = products;
-        this.stock = stock;
-        this.orders = orders;
+    public OrderService(ProductReader productReader, StockAllocator stockAllocator, OrderSaver orderSaver) {
+        this.productReader = productReader;
+        this.stockAllocator = stockAllocator;
+        this.orderSaver = orderSaver;
     }
 
     @Transactional
     public OrderEntity create(CreateOrderCommand command) {
-        var selections = products.readForOptions(
+        var selections = productReader.readForOptions(
                 command.items().stream().map(OrderItemCommand::optionId).toList());
         var items = command.items().stream()
                 .map(item -> {
@@ -36,8 +36,8 @@ public class OrderService {
         for (var item : command.items().stream()
                 .sorted(Comparator.comparingLong(OrderItemCommand::optionId))
                 .toList()) {
-            stock.allocate(item.optionId(), item.quantity());
+            stockAllocator.allocate(item.optionId(), item.quantity());
         }
-        return orders.create(items);
+        return orderSaver.create(items);
     }
 }

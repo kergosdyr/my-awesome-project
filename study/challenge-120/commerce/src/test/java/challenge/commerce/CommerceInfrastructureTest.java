@@ -75,7 +75,7 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
                                 "/api/orders",
                                 "{\"items\":[{\"displayedUnitPrice\":129000,\"optionId\":999,\"quantity\":1}]}")
                         .code());
-        assertEquals(0, orders.count());
+        assertEquals(0, orderJpaRepository.count());
         assertEquals(
                 12,
                 request("GET", "/api/products", "")
@@ -103,7 +103,7 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
                                 "/api/orders",
                                 "{\"items\":[{\"displayedUnitPrice\":129000,\"optionId\":102,\"quantity\":5}]}")
                         .code());
-        assertEquals(1, orders.count());
+        assertEquals(1, orderJpaRepository.count());
         assertEquals(
                 3,
                 request("GET", "/api/products", "")
@@ -122,9 +122,11 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
         assertEquals(200, paid.code());
         assertEquals("PAID", paid.body().get("status").asText());
         assertEquals(paid.body(), pay(id).body());
-        assertEquals(1, payments.count());
-        assertEquals(1, gateway.approvals());
-        assertEquals(129000, gateway.lookup(String.valueOf(id)).orElseThrow().amount());
+        assertEquals(1, paymentJpaRepository.count());
+        assertEquals(1, fakePaymentGateway.approvals());
+        assertEquals(
+                129000,
+                fakePaymentGateway.lookup(String.valueOf(id)).orElseThrow().amount());
         assertEquals("PAID", details(id).body().get("paymentStatus").asText());
         assertEquals(1, request("GET", "/api/orders", "").body().size());
     }
@@ -135,8 +137,8 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
         var paid = pay(order());
         assertEquals(200, paid.code());
         assertEquals("PAID", paid.body().get("status").asText());
-        assertEquals(1, gateway.approvals());
-        assertEquals(1, payments.count());
+        assertEquals(1, fakePaymentGateway.approvals());
+        assertEquals(1, paymentJpaRepository.count());
     }
 
     @Test
@@ -144,14 +146,14 @@ class CommerceInfrastructureTest extends CommerceHttpSupport {
         long id = order();
         pendingThenComplete(id);
         assertEquals("PENDING", details(id).body().get("paymentStatus").asText());
-        assertEquals(1, payments.count());
+        assertEquals(1, paymentJpaRepository.count());
     }
 
     @Test
     void missingOrderCannotRequestAnApproval() throws Exception {
         assertEquals(404, pay(99999).code());
-        assertEquals(0, gateway.approvals());
-        assertEquals(0, payments.count());
+        assertEquals(0, fakePaymentGateway.approvals());
+        assertEquals(0, paymentJpaRepository.count());
     }
 
     @Test

@@ -8,14 +8,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/products")
 public class CatalogController {
-    private final CatalogService catalog;
+    private final CatalogService catalogService;
 
-    public CatalogController(CatalogService catalog) {
-        this.catalog = catalog;
+    public CatalogController(CatalogService catalogService) {
+        this.catalogService = catalogService;
     }
 
     @GetMapping
     public List<ProductResponse> list() {
-        return catalog.list().stream().map(ProductResponse::from).toList();
+        return catalogService.list().stream().map(ProductResponse::from).toList();
     }
 }

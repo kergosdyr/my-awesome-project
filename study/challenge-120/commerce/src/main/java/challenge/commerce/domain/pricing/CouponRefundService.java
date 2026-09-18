@@ -7,20 +7,20 @@ import org.springframework.transaction.annotation.Transactional;
 /** 제공 실험 진입점. 실제 주문의 가격 스냅샷으로 가상의 쿠폰·환불 계획을 계산한다. */
 @Service
 public class CouponRefundService {
-    private final OrderReader orders;
-    private final CouponRefundPlanner planner;
+    private final OrderReader orderReader;
+    private final CouponRefundPlanner couponRefundPlanner;
 
-    public CouponRefundService(OrderReader orders, CouponRefundPlanner planner) {
-        this.orders = orders;
-        this.planner = planner;
+    public CouponRefundService(OrderReader orderReader, CouponRefundPlanner couponRefundPlanner) {
+        this.orderReader = orderReader;
+        this.couponRefundPlanner = couponRefundPlanner;
     }
 
     @Transactional(readOnly = true)
     public CouponRefundPlanResult preview(long orderId, long discountAmount) {
-        var order = orders.read(orderId);
+        var order = orderReader.read(orderId);
         var lines = order.items().stream()
                 .map(item -> new CouponLineCommand(item.optionId(), item.unitPrice(), item.quantity()))
                 .toList();
-        return planner.plan(new CouponRefundCommand(lines, discountAmount));
+        return couponRefundPlanner.plan(new CouponRefundCommand(lines, discountAmount));
     }
 }

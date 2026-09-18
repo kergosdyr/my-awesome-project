@@ -9,25 +9,25 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/dev/pg")
 public class DevelopmentPgController {
-    private final FakePaymentGateway gateway;
+    private final FakePaymentGateway fakePaymentGateway;
 
-    public DevelopmentPgController(FakePaymentGateway gateway) {
-        this.gateway = gateway;
+    public DevelopmentPgController(FakePaymentGateway fakePaymentGateway) {
+        this.fakePaymentGateway = fakePaymentGateway;
     }
 
     @PutMapping("/mode/{mode}")
     public void mode(@PathVariable("mode") FakePaymentGateway.Mode mode) {
-        gateway.mode(mode);
+        fakePaymentGateway.mode(mode);
     }
 
     @PostMapping("/{key}/complete")
     public PaymentGateway.Receipt complete(@PathVariable("key") String key) {
         find(key);
-        return gateway.complete(key);
+        return fakePaymentGateway.complete(key);
     }
 
     @GetMapping("/{key}")
     public PaymentGateway.Receipt find(@PathVariable("key") String key) {
-        return gateway.lookup(key).orElseThrow(() -> BusinessException.notFound("PG 거래를 찾을 수 없습니다."));
+        return fakePaymentGateway.lookup(key).orElseThrow(() -> BusinessException.notFound("PG 거래를 찾을 수 없습니다."));
     }
 }

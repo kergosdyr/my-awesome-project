@@ -7,19 +7,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class CatalogFixture implements CommandLineRunner {
-    private final ProductJpaRepository products;
-    private final ProductOptionJpaRepository options;
+    private final ProductJpaRepository productJpaRepository;
+    private final ProductOptionJpaRepository productOptionJpaRepository;
 
-    public CatalogFixture(ProductJpaRepository products, ProductOptionJpaRepository options) {
-        this.products = products;
-        this.options = options;
+    public CatalogFixture(
+            ProductJpaRepository productJpaRepository, ProductOptionJpaRepository productOptionJpaRepository) {
+        this.productJpaRepository = productJpaRepository;
+        this.productOptionJpaRepository = productOptionJpaRepository;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
-        if (products.count() > 0) return;
-        products.saveAll(List.of(
+        if (productJpaRepository.count() > 0) return;
+        productJpaRepository.saveAll(List.of(
                 new ProductEntity(
                         1,
                         "ORDINARY STUDIO",
@@ -44,7 +45,7 @@ public class CatalogFixture implements CommandLineRunner {
                         "BAG",
                         59000,
                         "/images/tote.svg")));
-        options.saveAll(List.of(
+        productOptionJpaRepository.saveAll(List.of(
                 new ProductOptionEntity(101, 1, "Olive", "M", 12),
                 new ProductOptionEntity(102, 1, "Olive", "L", 8),
                 new ProductOptionEntity(103, 1, "Olive", "XL", 0),

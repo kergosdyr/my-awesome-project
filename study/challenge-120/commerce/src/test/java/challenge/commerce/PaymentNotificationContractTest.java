@@ -11,12 +11,12 @@ class PaymentNotificationContractTest extends CommerceHttpSupport {
     void approvedNotificationUpdatesTheExistingPayment() throws Exception {
         long id = order();
         var receipt = pendingThenComplete(id);
-        var rowId = paymentStore.findByOrderId(id).orElseThrow().id();
+        var rowId = paymentRepository.findByOrderId(id).orElseThrow().id();
         var response = notifyApproval(receipt);
         assertEquals(200, response.code());
         assertTrue(response.body().get("accepted").asBoolean());
-        assertEquals(1, payments.count());
-        var after = paymentStore.findByOrderId(id).orElseThrow();
+        assertEquals(1, paymentJpaRepository.count());
+        var after = paymentRepository.findByOrderId(id).orElseThrow();
         assertEquals(rowId, after.id());
         assertTrue(after.isPaid());
         assertEquals(receipt.get("approvalId").asText(), after.approvalId());
@@ -29,21 +29,21 @@ class PaymentNotificationContractTest extends CommerceHttpSupport {
         var receipt = pendingThenComplete(id);
         assertEquals(200, notifyApproval(receipt).code());
         assertEquals(200, notifyApproval(receipt).code());
-        assertEquals(1, payments.count());
+        assertEquals(1, paymentJpaRepository.count());
         assertEquals(
                 receipt.get("approvalId").asText(),
                 pay(id).body().get("approvalId").asText());
-        assertEquals(1, gateway.approvals());
+        assertEquals(1, fakePaymentGateway.approvals());
     }
 
     @Test
     void notificationWithoutLocalPaymentIsIgnored() throws Exception {
         long id = order();
-        var receipt = json.valueToTree(gateway.approve(String.valueOf(id), id, 129000));
+        var receipt = json.valueToTree(fakePaymentGateway.approve(String.valueOf(id), id, 129000));
         var response = notifyApproval(receipt);
         assertEquals(200, response.code());
         assertFalse(response.body().get("accepted").asBoolean());
-        assertEquals(0, payments.count());
+        assertEquals(0, paymentJpaRepository.count());
         assertEquals("UNPAID", details(id).body().get("paymentStatus").asText());
     }
 
@@ -52,11 +52,13 @@ class PaymentNotificationContractTest extends CommerceHttpSupport {
     void notificationAfterSynchronousPaymentPreservesIdentity() throws Exception {
         long id = order();
         var paid = pay(id);
-        var before = paymentStore.findByOrderId(id).orElseThrow();
-        var receipt = json.valueToTree(gateway.lookup(String.valueOf(id)).orElseThrow());
+        var before = paymentRepository.findByOrderId(id).orElseThrow();
+        var receipt =
+                json.valueToTree(fakePaymentGateway.lookup(String.valueOf(id)).orElseThrow());
         assertEquals(200, notifyApproval(receipt).code());
-        assertEquals(before.id(), paymentStore.findByOrderId(id).orElseThrow().id());
+        assertEquals(
+                before.id(), paymentRepository.findByOrderId(id).orElseThrow().id());
         assertEquals(paid.body(), pay(id).body());
-        assertEquals(1, payments.count());
+        assertEquals(1, paymentJpaRepository.count());
     }
 }

@@ -6,14 +6,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CatalogService {
-    private final ProductReader products;
+    private final ProductReader productReader;
 
-    public CatalogService(ProductReader products) {
-        this.products = products;
+    public CatalogService(ProductReader productReader) {
+        this.productReader = productReader;
     }
 
     @Transactional(readOnly = true)
     public List<ProductResult> list() {
-        return products.readAll();
+        return productReader.readAll();
     }
 }
