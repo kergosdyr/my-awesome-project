@@ -49,7 +49,7 @@ challenge-120/
 ./gradlew :commerce:test --tests '*PriceConsentTest'  # B007
 ./gradlew :commerce:priceExperiment                  # 가격 변경 관찰
 ./gradlew :commerce:test --tests 'challenge.commerce.Payment*' # B006
-./gradlew ciTest                                     # 완료 코딩28 + 커머스43
+./gradlew ciTest                                     # 완료 코딩28 + 커머스44
 ./gradlew test --continue                            # 모든 현재 과제; 미완성 실패도 표시
 ./gradlew assemble                                  # 두 모듈 컴파일·커머스 실행 배포본
 ./gradlew build --continue                           # 전체 테스트·패키징·포맷
@@ -73,7 +73,7 @@ HTTP Request/Response는 `commerce/.../api`에 둔다. Command·Query·Result는
 
 2026-09-16: 모듈 컴파일·패키징과 필수 CI는 통과. Coding 전체66개 중62개 통과·기존 C004 네 개 실패. B007은 사용자 가격 비교 구현에 요청받은409 예외 연결을 AI가 적용한 뒤8/8 통과했다. 사용자가 작성한 가격 조건과 빈 ProductValidator는 보존했다. 전체 build 성공으로 표시하지 않는다.
 
-예전 CI의 C00510개는 유지하고 완료된 C006·C007각9개를 추가했다. 삭제 요청된 legacy 결제 검사5개는 함께 제거했으며 활성 커머스43개(제공 환경9·결제5·응답2·조회2·다품목10·기본 페이지6·Entity 조인6·이어 조회 입력/응답3)를 필수 검사로 실행한다. 미완성 과제는 전체 test에서 계속 드러난다.
+예전 CI의 C00510개는 유지하고 완료된 C006·C007각9개를 추가했다. 삭제 요청된 legacy 결제 검사5개는 함께 제거했으며 활성 커머스44개(제공 환경9·결제5·응답3·조회2·다품목10·기본 페이지6·Entity 조인6·이어 조회 입력/응답3)를 필수 검사로 실행한다. 미완성 과제는 전체 test에서 계속 드러난다.
 
 ## 운영
 

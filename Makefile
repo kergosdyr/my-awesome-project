@@ -9,7 +9,7 @@ setup-blog: ## 최초 설정 또는 blog lockfile 변경 때 의존성을 설치
 test: ## coding 모듈의 전체 코딩 테스트를 실행합니다.
 	cd study/challenge-120 && ./gradlew :coding:test
 
-check-study: ## 두 모듈 컴파일·완료 코딩28개·활성 커머스43개 회귀 검사를 실행합니다.
+check-study: ## 두 모듈 컴파일·완료 코딩28개·활성 커머스44개 회귀 검사를 실행합니다.
 	cd study/challenge-120 && ./gradlew :coding:testClasses :commerce:testClasses ciTest
 
 check-blog: ## 블로그 lint와 typecheck를 실행합니다.

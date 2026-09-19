@@ -4,6 +4,7 @@ import challenge.commerce.domain.order.CreateOrderCommand;
 import challenge.commerce.support.BusinessException;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +34,8 @@ public class OrderEntity {
             order.items.add(item);
             order.totalAmount = Math.addExact(order.totalAmount, item.totalAmount());
         }
-        order.createdAt = Instant.now();
+        // DB timestamp(6)와 생성 응답의 정밀도를 맞춘다.
+        order.createdAt = Instant.now().truncatedTo(ChronoUnit.MICROS);
         return order;
     }
 

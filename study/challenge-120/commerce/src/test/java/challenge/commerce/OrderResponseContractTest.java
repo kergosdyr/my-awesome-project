@@ -7,6 +7,28 @@ import org.junit.jupiter.api.Test;
 /** 주문 API의 공개 JSON에서 주문 공통 정보와 품목 목록을 분리한다. */
 class OrderResponseContractTest extends CommerceHttpSupport {
     @Test
+    void nanosecondClockPreservesCreatedTimeAfterDatabaseRoundTrip() throws Exception {
+        var now = java.time.Instant.parse("2026-09-19T12:34:56.123456789Z");
+        var item = challenge.commerce.infra.db.OrderItemEntity.select(
+                productJpaRepository.findById(1L).orElseThrow(),
+                productOptionJpaRepository.findById(101L).orElseThrow(),
+                1);
+        challenge.commerce.infra.db.OrderEntity order;
+        try (var clock =
+                org.mockito.Mockito.mockStatic(java.time.Instant.class, org.mockito.Mockito.CALLS_REAL_METHODS)) {
+            clock.when(java.time.Instant::now).thenReturn(now);
+            order = challenge.commerce.infra.db.OrderEntity.place(java.util.List.of(item));
+        }
+        orderJpaRepository.saveAndFlush(order);
+        var response = details(order.id());
+        assertEquals(200, response.code());
+        assertEquals(
+                order.createdAt(),
+                java.time.Instant.parse(
+                        response.body().path("order").path("createdAt").asText()));
+    }
+
+    @Test
     void createdOrderAndUnpaidDetailsKeepTheirShape() throws Exception {
         var created = request(
                 "POST", "/api/orders", "{\"items\":[{\"optionId\":101,\"quantity\":1,\"displayedUnitPrice\":129000}]}");
