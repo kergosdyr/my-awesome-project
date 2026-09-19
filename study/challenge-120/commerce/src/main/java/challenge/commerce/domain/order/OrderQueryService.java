@@ -1,0 +1,36 @@
+package challenge.commerce.domain.order;
+
+import challenge.commerce.domain.query.PageQuery;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class OrderQueryService {
+    private final OrderReader orderReader;
+
+    public OrderQueryService(OrderReader orderReader) {
+        this.orderReader = orderReader;
+    }
+
+    @Transactional(readOnly = true)
+    public OrderDetailsResult find(long id) {
+        return orderReader.readDetails(id);
+    }
+
+    /**
+     * B009: 최근 주문부터 size개와 다음 조회 위치을 반환한다.
+     * after=null은 첫 요청. createdAt 내림차순, 같은 시각은 id 내림차순.
+     * 새 최신 주문이 들어와도 기존 주문을 중복·누락 없이 이어 읽는다.
+     * 쿼리·건수 제한·주문/결제 조합은 infra에, 트랜잭션은 이 서비스에 둔다.
+     * 실행: ./gradlew :commerce:test --tests '*OrderWindowTest'
+     */
+    @Transactional(readOnly = true)
+    public OrderWindowResult window(int size, OrderCursor cursor) {
+        return orderReader.readCursor(size, cursor);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderPageResult list(PageQuery query) {
+        return orderReader.readPage(query);
+    }
+}

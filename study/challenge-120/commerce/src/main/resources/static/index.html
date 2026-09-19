@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f1e9">
+  <title>FORM — Everyday, considered.</title>
+  <link rel="stylesheet" href="/store.css">
+  <script type="module" src="/store.js"></script>
+</head>
+<body>
+  <div class="announcement">작은 선택으로 만드는, 나다운 일상.</div>
+  <header class="header">
+    <a class="wordmark" href="/" aria-label="FORM 홈">FORM<span>®</span></a>
+    <nav aria-label="주 메뉴">
+      <a href="#collection">컬렉션</a>
+      <button class="text-button" id="open-cart">장바구니 <span id="cart-count">0</span></button>
+      <button class="text-button" id="open-orders">주문 내역</button>
+    </nav>
+    <span class="header-note">INDEPENDENT GOODS · SEOUL</span>
+  </header>
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">THE EVERYDAY EDIT / VOL. 01</p>
+        <h1 id="hero-title">Everyday,<br><em>considered.</em></h1>
+        <p class="hero-description">오래 입고, 자주 들고, 자연스럽게.<br>매일의 쓰임을 생각한 세 가지 선택.</p>
+        <a class="link-arrow" href="#collection">이번 컬렉션 둘러보기 <span>↗</span></a>
+        <div class="hero-foot">GOOD FORM. BETTER EVERYDAY.</div>
+      </div>
+      <div class="hero-art">
+        <span class="art-label">01 / UTILITY FIELD JACKET</span>
+        <img src="/images/jacket.svg" alt="올리브색 유틸리티 필드 재킷 일러스트">
+        <div class="art-caption"><span>Made for the in-between.</span><span>ORDINARY STUDIO</span></div>
+      </div>
+    </section>
+    <section class="collection" id="collection" aria-labelledby="collection-title">
+      <div class="section-heading"><div><p class="eyebrow">ESSENTIALS, RECONSIDERED</p><h2 id="collection-title">지금, 필요한 것들<span id="catalog-count">00</span></h2></div><span class="section-note">덜어낼수록 선명해지는 취향</span></div>
+      <div id="catalog" class="product-grid" aria-live="polite"><p>컬렉션을 불러오고 있습니다.</p></div>
+      <button class="text-button" id="more-products" hidden>상품 더 보기</button>
+    </section>
+    <section class="editorial"><span class="eyebrow">OUR POINT OF VIEW</span><p>유행보다 쓰임을.<br><em>더 많이보다, 더 자주.</em></p><span>좋아하는 것들로 채우는 일상.<br>FORM은 그 작은 선택에서 시작합니다.</span></section>
+  </main>
+  <footer><a class="wordmark" href="/">FORM<span>®</span></a><p>A considered collection for everyday living.</p><span>커머스 학습 프로젝트 · 실제 거래가 발생하지 않습니다.</span><a href="/dev.html">개발 도구 ↗</a></footer>
+  <dialog id="product-dialog" aria-labelledby="product-title">
+    <button class="close" data-close="product-dialog" aria-label="상품 창 닫기">✕</button>
+    <div id="product-detail" class="product-detail"></div>
+  </dialog>
+  <dialog id="orders-dialog" class="orders-dialog" aria-labelledby="orders-title">
+    <div class="drawer-heading"><div><p class="eyebrow">YOUR SELECTIONS</p><h2 id="orders-title">주문 내역</h2></div><button class="close" data-close="orders-dialog" aria-label="주문 내역 닫기">✕</button></div>
+    <div class="orders-toolbar"><span>이 실행 환경에서 만든 주문</span><button class="text-button" id="refresh-orders">새로고침 ↻</button></div>
+    <nav class="orders-pagination" aria-label="주문 내역 페이지">
+      <button class="text-button" id="previous-orders" disabled>이전</button>
+      <span id="orders-page-status" role="status">1페이지</span>
+      <button class="text-button" id="next-orders" disabled>다음</button>
+    </nav>
+    <div id="orders" aria-live="polite"></div>
+  </dialog>
+  <dialog id="cart-dialog" class="orders-dialog" aria-labelledby="cart-title">
+    <div class="drawer-heading"><div><p class="eyebrow">YOUR BAG</p><h2 id="cart-title">장바구니</h2></div><button class="close" data-close="cart-dialog" aria-label="장바구니 닫기">✕</button></div>
+    <p class="form-note">품목별 최대 5개 · 최대 20종류. 새로고침하면 장바구니는 비워집니다.</p>
+    <div id="cart-items" aria-live="polite"></div>
+    <div class="total"><span>상품 합계</span><strong id="cart-total">0원</strong></div>
+    <p id="cart-error" class="error" role="alert"></p>
+    <button class="text-button" id="refresh-cart">현재 가격·재고 다시 확인</button>
+    <button class="primary" id="checkout">함께 주문하기 →</button>
+  </dialog>
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>
